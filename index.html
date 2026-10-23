@@ -424,7 +424,7 @@ const FLOORS = [
    ]}
 ];
 
-const SOLID = '#FwkCbrvZHJxEtmQihoWTLfuczjBeXnV%yd,:;123478UKOMN';
+const SOLID = '$#FwkCbrvZHJxEtmQihoWTLfuczjBeXnV%yd,:;123478UKOMN';
 const BLOCK_SIGHT = '#FCtmQoLfuBexXZHJ%yEdKOMN';
 const INFO = {
   L:'YESHURUN TORÁ, en letras de metal.',
@@ -574,6 +574,8 @@ function drawTile(b, c, r){
     case 'w': R(0,0,16,16,STEEL[2]); R(1,1,14,10,GLASS[0]); for (let i = 0; i < 5; i++){ R(3+i,8-i,1,1,GLASS[1]); R(9+i,9-i,1,1,GLASS[1]); } R(0,11,16,5,STEEL[1]); R(0,11,16,1,STEEL[3]); break;
     case 'i': floorC(); R(6,2,4,2,GRAY[3]); R(7,3,2,10,GRAY[3]); R(5,12,6,3,GRAY[3]); R(7,4,1,8,GRAY[2]); break;
     case 'R': R(0,0,16,16,GRAY[0]); for (let y = 1; y < 16; y += 3) for (let x = 1; x < 16; x += 2) R(x,y,1,1,GRAY[1]); if (at(c, r-1) !== 'R') R(1,1,14,2,YEL[1]); break;
+    case '$': { floorC(); const col = (c + r) % 2 ? [BLUE[2], BLUE[3]] : [RED[1], RED[2]]; // sillas del acto
+      R(4,2,8,6,col[1]); R(5,3,6,4,col[0]); R(3,9,10,3,col[1]); R(4,9,8,2,col[0]); R(4,12,1,3,'#3f464b'); R(11,12,1,3,'#3f464b'); break; }
     case 'h': floorC(); R(6,0,4,16,STEEL[1]); R(7,0,1,16,STEEL[0]); R(9,0,1,16,STEEL[3]); R(5,3,6,2,STEEL[2]); R(5,11,6,2,STEEL[2]); break;
     case 'D': floorC(); R(0,0,16,2,STEEL[3]); R(0,2,2,14,STEEL[2]); R(14,2,2,14,STEEL[2]); R(2,2,2,13,GLASS[2]); R(3,2,1,13,GLASS[0]); R(12,2,2,13,GLASS[2]); break;
     case 'o':
@@ -847,8 +849,9 @@ const hardOK = () => { try { return localStorage.getItem('litufim-dificil') === 
 let state = 'title', floorIdx = 0, carry = false, P, M, watchers, f = 0, floorStartF = 0, caught = null, caughtT = 0, waitT = 0;
 
 function mkEnt(x, y, dir){ return {tx:x, ty:y, fx:x, fy:y, px:x*TS, py:y*TS, dir, moving:false, t:0, dur:8, step:0}; }
+const actoMap = m => m.map((row, y) => y >= 12 && y <= 14 ? row.split('').map((c, x) => x >= 7 && x <= 17 && c === 'q' ? '$' : c).join('') : row);
 function loadFloor(i, viaElev, walk){
-  floorIdx = i; const F = FLOORS[i]; map = F.map; MW = map[0].length; MH = map.length; bake();
+  floorIdx = i; const F = FLOORS[i]; map = (i === 0 && actoDay) ? actoMap(F.map) : F.map; MW = map[0].length; MH = map.length; bake();
   const s = (viaElev && F.startElev) ? F.startElev : F.start;
   P = mkEnt(s.x, s.y, s.dir);
   const follow = i === 0 || viaElev;
@@ -906,7 +909,7 @@ const ROMI_ROUTES = [
 ];
 const QUEUE_T = [[14,18],[14,19],[14,20],[14,21],[14,22],[14,23]];
 const PEOPLE = ['papa2','papa3','papa4','mama1','mama2'];
-let paseoT = 60, elvioT = 400, hurryT = 300, honkT = 0, honker = null, momDay = false, momT = 0, slowT = 0, shoutCD = 0, spotTaken = false, peakT = 0, ghosts = [], vehicles = [], queue = [], walkT = 200, carT = 120, queueT = 150, queueDay = false, wantAsked = false, meirWants = null, tired = false;
+let actoDay = false, shakeT = 0, toy = null, toyDone = false, pigeons = [], paseoT = 60, elvioT = 400, hurryT = 300, honkT = 0, honker = null, momDay = false, momT = 0, slowT = 0, shoutCD = 0, spotTaken = false, peakT = 0, ghosts = [], vehicles = [], queue = [], walkT = 200, carT = 120, queueT = 150, queueDay = false, wantAsked = false, meirWants = null, tired = false;
 function ghost(x, y, route, pal, speed, onEnd, text, solid){
   const g = {e:{...mkEnt(x, y, 'down')}, tiles:expandRoute(route), s:0, pal, speed, onEnd, gone:false, solid:!!solid};
   ghosts.push(g); if (text) bubbles.push({ent:g.e, up:0, text, life:90, delay:0}); return g;
@@ -928,7 +931,7 @@ function upGhosts(){
     }
     g.wait = 0;
     g.e.dir = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up'; g.s++; startMove(g.e, dx, dy, g.speed);
-    if (g.prop === 'kid' && !carry && Math.abs(g.e.tx - M.tx) + Math.abs(g.e.ty - M.ty) <= 1 && !bubbles.some(b => b.ent === M) && Math.random() < 0.25) bubbles.push({ent:M, up:0, text:['YO TAMBIEN QUIERO CORRER!','ESPERAME!','JAJAJA!'][Math.floor(Math.random()*3)], life:70, delay:0});
+    if (g.prop === 'kid' && !carry && Math.abs(g.e.tx - M.tx) + Math.abs(g.e.ty - M.ty) <= 1 && !bubbles.some(b => b.ent === M) && Math.random() < 0.08) bubbles.push({ent:M, up:0, text:['YO TAMBIEN QUIERO CORRER!','JAJA'][Math.floor(Math.random()*2)], life:70, delay:0});
   }
   ghosts = ghosts.filter(g => !g.gone);
   if (floorIdx !== 0) return;
@@ -963,7 +966,9 @@ function upGhosts(){
   // gente que pasa caminando por la vereda (no entra al colegio)
   if (--paseoT <= 0) { paseoT = 90 + Math.floor(Math.random()*150); const ltr = Math.random() < .5; ghost(ltr ? -1 : 22, 23, ltr ? [[-1,23],[22,23]] : [[22,23],[-1,23]], PEOPLE[Math.floor(Math.random()*PEOPLE.length)], 11 + Math.floor(Math.random()*6)); }
   // Elvio, el de seguridad, apura a todos
-  if (--elvioT <= 0) { elvioT = 330 + Math.floor(Math.random()*260); const w = watchers.find(x => x.name === 'ELVIO'); if (w && (P.ty >= 17 || facadeA > 0.5) && !bubbles.some(b => b.ent === w)) bubbles.push({ent:w, up:10, text:'ELVIO: ' + ['AVANCEN, AVANCEN!','VAMOS, QUE SE ARMA FILA!','DALE, DALE, AVANCEN!','NO SE QUEDEN EN LA PUERTA!','AVANCEN, POR FAVOR!'][Math.floor(Math.random()*5)], life:110, delay:0}); }
+  if (--elvioT <= 0) { elvioT = 330 + Math.floor(Math.random()*260); const w = watchers.find(x => x.name === 'ELVIO'); if (w && (P.ty >= 17 || facadeA > 0.5) && !bubbles.some(b => b.ent === w)) { shakeT = 14; if (!muted) tone(110, 0.16, 'square', 0.035); bubbles.push({ent:w, up:10, text:'ELVIO: ' + ['AVANCEN, AVANCEN!','VAMOS, QUE SE ARMA FILA!','DALE, DALE, AVANCEN!','NO SE QUEDEN EN LA PUERTA!','AVANCEN, POR FAVOR!'][Math.floor(Math.random()*5)], life:110, delay:0}); } }
+  if (actoDay && facadeA < 0.5 && Math.random() < 0.002) { const d = watchers.find(x => x.pal === 'dir'); if (d && !bubbles.some(b => b.ent === d)) bubbles.push({ent:d, up:0, text:['SHHH, QUE EMPIEZA EL ACTO!','SE SIENTAN, POR FAVOR!','PROBANDO, PROBANDO...'][Math.floor(Math.random()*3)], life:100, delay:0}); }
+  upPigeons();
   // autos y colectivos que pasan por la calle
   if (--carT <= 0) { carT = 38 + Math.floor(Math.random()*80); const r = Math.random(); vehicles.push(mkVehicle(-70, 28, r < 0.5 ? 'car' : r < 0.72 ? 'taxi' : r < 0.9 ? 'bus' : 'school', 0)); }
   for (const v of vehicles) {
@@ -1009,12 +1014,14 @@ const KID_ROOMS = [{name:'la primera de la izquierda', door:[5,5]}, {name:'la pr
 function placeFK(i){
   trail = [];
   if (!FK) return;
-  if (i === 0) { if (FK.mode === 'gone') return; Object.assign(FK, mkEnt(19, 15, 'down'), {mode:'ask'}); bubbles.push({ent:FK, up:0, text: FK.cousin ? (hero === 'melu' ? 'TIAAA! PARA, PARA!' : 'TIOOO! PARA, PARA!') : 'CHE, PARA! PARA!', life:120, delay:90}); return; }
+  if (i === 0) { if (FK.mode === 'gone') return; Object.assign(FK, mkEnt(19, 15, 'down'), {mode:'ask'}); if (FK.twin) Object.assign(FK.twin, mkEnt(20, 15, 'down')); bubbles.push({ent:FK, up:0, text: FK.cousin ? (hero === 'melu' ? 'TIAAA! PARA, PARA!' : 'TIOOO! PARA, PARA!') : 'CHE, PARA! PARA!', life:120, delay:90}); return; }
   if (FK.mode !== 'follow') { FK.mode = 'gone'; return; }
   Object.assign(FK, mkEnt(P.tx === 12 ? 13 : 14, 4, 'down'));
+  if (FK.twin) Object.assign(FK.twin, mkEnt(FK.tx + 1, 4, 'down'));
 }
 function upFK(dur){
   if (!FK || FK.mode === 'gone') return;
+  if (FK.twin) tickMove(FK.twin);
   if (tickMove(FK) && FK.mode === 'follow' && floorIdx >= 1) {
     const [dx, dy] = FK.room.door;
     if (Math.abs(FK.tx - dx) + Math.abs(FK.ty - dy) <= 1) { FK.mode = 'gone'; SFX.door(); bubbles.push({ent:{px:FK.px, py:FK.py}, up:0, text:'CHAU, GRACIAS!', life:110, delay:0}); FK.done = true; }
@@ -1022,6 +1029,7 @@ function upFK(dur){
   if (FK.mode === 'ask' && state === 'play' && !P.moving && Math.abs(FK.tx - P.tx) + Math.abs(FK.ty - P.ty) <= 3) {
     FK.mode = 'talk'; FK.dir = P.tx < FK.tx ? 'left' : P.tx > FK.tx ? 'right' : P.ty < FK.ty ? 'up' : 'down';
     const K = FK.name;
+    if (FK.twin) { const K2 = FK.twin.name; FK.twin.dir = FK.dir; say([K + ' Y ' + K2 + ': ¡Che, pará! ¿Nos llevás hasta nuestra sala? ¡Somos mellizos!', '¿Y a qué sala van?', K2 + ': ' + FK.room.name + '. ¡Los dos juntos!', 'MEIR: ¡Hola, ' + K + '! ¡Hola, ' + K2 + '!', 'Dale, vengan con nosotros. ¡En fila y calladitos!'], () => { FK.mode = 'follow'; }); return; }
     say(FK.cousin
       ? [K + ' (tu sobrino): ¡¡' + (hero === 'melu' ? 'TÍA' : 'TÍO') + '!! ¿Me llevás hasta mi sala? Mi mamá ya se fue.', 'MEIR: ¡' + K + '! ¡Mi primo!', '¿Cuál es tu sala, ' + K + '?', K + ': ' + FK.room.name + '.', 'Dale, vení con nosotros. ¡Y que Romi no nos vea!']
       : [K + ': ¡Che, pará! ¿Me llevás hasta mi sala?', '¿Cómo te llamás?', K + ': ¡' + K + '! Y voy a ' + FK.room.name + '.', 'MEIR: ¡Hola, ' + K + '!', 'Dale, vení con nosotros.'], () => { FK.mode = 'follow'; });
@@ -1032,16 +1040,20 @@ function moveFK(dur){
   const t = (carry || M.stuck) ? trail[0] : trail[1];
   if (!t || (t[0] === FK.tx && t[1] === FK.ty)) return;
   FK.dir = t[0] > FK.tx ? 'right' : t[0] < FK.tx ? 'left' : t[1] > FK.ty ? 'down' : 'up';
+  const fx0 = FK.tx, fy0 = FK.ty;
   startMove(FK, t[0] - FK.tx, t[1] - FK.ty, dur);
+  if (FK.twin && !FK.twin.moving) { const T = FK.twin, d = Math.abs(T.tx - fx0) + Math.abs(T.ty - fy0);
+    if (d === 1) { T.dir = fx0 > T.tx ? 'right' : fx0 < T.tx ? 'left' : fy0 > T.ty ? 'down' : 'up'; startMove(T, fx0 - T.tx, fy0 - T.ty, dur); }
+    else if (d > 1) Object.assign(T, mkEnt(fx0, fy0, FK.dir)); }
 }
 /* --- puertas que se abren: una morá sale con nenes en fila y cruza a otra sala --- */
 let guideT = 0, parade = null, paradeT = 0, stuckCD = 0, stuckN = 0, chatT = 240, cousinX = false;
 // Meir habla todo el tiempo
-const CHAT_WALK = ['PAPI, TENGO HAMBRE','QUIERO AGUA!','PAPI, UN AVION!','CANTAMOS?','POR QUE ROMI SE ENOJA?','HOY HAY PLASTILINA?','ME ESPERAS A LA SALIDA?','PAPI, TE QUIERO','CORRAMOS!','MIRA COMO SALTO!','QUIERO IR AL BAÑO...','HOY TRAJE MI AUTITO','ME DAS LA MANO?','SOY UN SUPERHEROE!'];
-const CHAT_UP = ['MAS ALTO, PAPI!','SOY UN AVION!','BAJAME, QUIERO CAMINAR!','VEO TODO DESDE ACA!','PAPI, ME HACES COSQUILLAS','MAS RAPIDO!'];
+const CHAT_WALK = ['TENGO HAMBRE','QUIERO AGUA','UN AVION!','HOY HAY PLASTILINA?','CORRAMOS!','QUIERO IR AL BAÑO','POR QUE ROMI SE ENOJA?','UFA, SUBIR...'];
+const CHAT_UP = ['MAS RAPIDO!','BAJAME!','VEO TODO DESDE ACA'];
 function meirChat(){
   if (state !== 'play' || --chatT > 0) return;
-  chatT = 280 + Math.floor(Math.random()*260);
+  chatT = 750 + Math.floor(Math.random()*500);
   if (bubbles.some(b => b.ent === M || b.ent === P)) return;
   const L = carry ? CHAT_UP : CHAT_WALK;
   bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:L[Math.floor(Math.random()*L.length)], life:100, delay:0});
@@ -1049,15 +1061,24 @@ function meirChat(){
   if (!cousinX && (floorIdx === 1 || floorIdx === 2) && P.tx <= 7 && Math.random() < 0.6) {
     cousinX = true; const g = ghost(23, 5, [[23,5],[23,16]], 'primo', 22, null, 'MEIIIR! HOLAAA!');
     if (!carry) { M.stuck = true; M.why = 'MIRANDO'; M.dir = 'right'; stuckCD = 700; }
-    bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'MI PRIMO! DEL OTRO LADO!', life:110, delay:40});
+    bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'MI PRIMO!', life:90, delay:40});
   }
 }
 const PARADE_ROUTES = [[[18,20],[18,19],[11,19],[11,20]], [[5,10],[6,10],[6,15],[5,15]], [[24,5],[23,5],[23,15],[24,15]], [[25,20],[25,18],[18,18],[18,20]], [[5,5],[6,5],[6,10],[5,10]]];
 // cosas que se mueven y molestan el camino (para que no sea solo entrar, izquierda y subir)
+function upPigeons(){
+  for (const b of pigeons) {
+    if (!b.fly && !P.hidden && state === 'play' && Math.abs(b.x - (P.px + 8)) + Math.abs(b.y - (P.py + 10)) < 30) { b.fly = true; b.vx = (b.x < P.px + 8 ? -1 : 1) * (1.3 + Math.random()); b.vy = -1.1 - Math.random()*0.6; if (!muted) for (let k = 0; k < 4; k++) tone(300 + Math.random()*200, 0.02, 'triangle', 0.02, k*0.05); }
+    if (b.fly) { b.x += b.vx; b.y += b.vy; b.vy -= 0.01; } else if (Math.random() < 0.01) b.vx = -b.vx;
+  }
+  pigeons = pigeons.filter(b => b.y > -40 && b.x > -40 && b.x < MW*TS + 40);
+}
 function spawnBusy(i){
+  pigeons = [];
+  if (i === 0) for (let k = 0; k < 5; k++) { const x = 1 + Math.floor(Math.random()*19), y = 22 + Math.floor(Math.random()*2); if (at(x, y) === 's') pigeons.push({x:x*TS + 4 + Math.random()*8, y:y*TS + 8, vx: Math.random() < .5 ? -1 : 1, vy:0, fly:false}); }
   const mk = (x, y, route, pal, speed, prop, ask, delay) => { const g = ghost(x, y, route, pal, speed, null, null, true); g.loop = true; g.prop = prop; g.ask = ask; g.delay = delay || 0; return g; };
   if (i === 0) {
-    mk(6, 13, [[6,13],[19,13]], 'port', 15, 'cart', ['PERMISO, PASO CON LAS CAJAS!','CUIDADO LOS PIES!','ATENCION, CARRITO!'], 40);
+    if (!actoDay) mk(6, 13, [[6,13],[19,13]], 'port', 15, 'cart', ['PERMISO, PASO CON LAS CAJAS!','CUIDADO LOS PIES!','ATENCION, CARRITO!'], 40);
     mk(18, 11, [[18,11],[6,11],[6,15],[18,15],[18,11]], ['kid3','kid5'][Math.floor(Math.random()*2)], 8, 'kid', ['PIIIUUU, SOY UN AVION!','NO ME AGARRAS!','PERDON!'], 160);
   } else {
     mk(6, 4, [[6,4],[23,4],[23,18],[6,18],[6,4]], ['kid1','kid4','kid6'][Math.floor(Math.random()*3)], 8, 'kid', ['PERDON, PERDON!','ME ESTOY YENDO AL BAÑO!','PIIIUUU!'], 60);
@@ -1139,6 +1160,15 @@ function upWatcher(w){
   }
   if (tickMove(w)) return;
   if (w.moving) return;
+  if (w.threat && w.chase > 0) { // Romi te sospecha y viene para tu lado
+    w.chase--;
+    const opts = [[1,0],[-1,0],[0,1],[0,-1]].map(([dx, dy]) => [dx, dy, Math.abs(w.tx + dx - P.tx) + Math.abs(w.ty + dy - P.ty)])
+      .filter(([dx, dy]) => { const nx = w.tx + dx, ny = w.ty + dy; return !SOLID.includes(at(nx, ny)) && !(P.tx === nx && P.ty === ny) && !(M.tx === nx && M.ty === ny) && !inParade(nx, ny) && !watchers.some(o => o !== w && o.tx === nx && o.ty === ny); })
+      .sort((a, b) => a[2] - b[2]);
+    if (opts.length) { const [dx, dy] = opts[0]; w.dir = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up'; startMove(w, dx, dy, Math.max(6, w.speed - 5)); }
+    if (w.chase === 0) bubbles.push({ent:w, up:10, text:['MMM... NADA.','ME PARECIO...','QUE RARO...'][Math.floor(Math.random()*3)], life:80, delay:0});
+    return;
+  }
   if (w.threat && !w.lookQ.length && Math.random() < 0.008) { w.lookQ = [[{up:'down',down:'up',left:'right',right:'left'}[w.dir], 40 + Math.floor(Math.random()*30)]]; w.lt = 0; }
   if (w.lookQ.length) { w.dir = w.lookQ[0][0]; if (++w.lt >= w.lookQ[0][1]) { w.lt = 0; w.lookQ.shift(); } return; }
   const wp = w.path[w.wi];
@@ -1313,7 +1343,7 @@ function retry(){ startMusic(); fadeThen(() => { $('title').hidden = true; $('hu
 function toggleUpa(){
   if (!carry) {
     if (M.stuck && Math.abs(M.tx - P.tx) + Math.abs(M.ty - P.ty) > 1) { bubbles.push({ent:P, up:0, text:'MEIR, VENI!', life:70, delay:0}); return; }
-    carry = true; M.stuck = false; M.warned = false; SFX.hi(); bubbles.push({ent:P, up:12, text:'UPA!', life:50, delay:0}); return;
+    carry = true; M.stuck = false; M.warned = false; SFX.tin(); bubbles.push({ent:P, up:12, text:'UPA!', life:50, delay:0}); return;
   }
   if (tired) { bubbles.push({ent:P, up:12, text:'NO, UPA!', life:60, delay:0}); return; }
   const back = trail[0] && Math.abs(trail[0][0] - P.tx) + Math.abs(trail[0][1] - P.ty) === 1 ? trail[0] : null;
@@ -1336,6 +1366,7 @@ function skipDialog(){ // B: saltea lo que queda del diálogo
   dq = []; $('dlg').hidden = true; state = prevState; const fn = dDone; dDone = null; SFX.blip(); if (fn) fn();
 }
 function actionA(){
+  if (state === 'mash') return mashA();
   if (state === 'choose') return chooseSelect();
   if (state === 'naming') return nameSelect();
   if (state === 'menu') return menuSelect();
@@ -1497,10 +1528,11 @@ const SFX = {
   stairs: () => [262,330,392,523].forEach((n,i) => tone(n, 0.07, 'square', 0.04, i*0.07)),
   engine: () => tone(70, 0.12, 'sawtooth', 0.022, 0, 10),
   park:   () => tone(110, 0.25, 'sawtooth', 0.03, 0, -50),
-  win:    () => [523,659,784,1047,784,1047].forEach((n,i) => tone(n, 0.16, 'square', 0.05, i*0.11)),
+  win:    () => ({1:[523,659,784,1047,784,1047], 2:[659,784,988,1319,988,1319,1568], 3:[523,659,784,659,784,1047,1319,1047,1568]}[level] || [523,659,784,1047]).forEach((n,i) => tone(n, 0.16, 'square', 0.05, i*0.11)),
   lose:   () => [392,370,349,330,262].forEach((n,i) => tone(n, 0.2, 'square', 0.05, i*0.16)),
   flash:  () => tone(1800, 0.05, 'square', 0.03, 0, -900),
   hi:     () => tone(660, 0.05, 'square', 0.03),
+  tin:    () => [1047, 1568, 2093].forEach((n, i) => tone(n, 0.07, 'square', 0.03, i*0.05)),
   star:   () => [988,1319,1568,1976].forEach((n,i) => tone(n, 0.09, 'square', 0.045, i*0.06)),
   slip:   () => tone(900, 0.18, 'triangle', 0.04, 0, -600),
   ring:   () => { for (let i = 0; i < 6; i++) tone(i % 2 ? 1175 : 1397, 0.07, 'square', 0.04, i*0.08); for (let i = 0; i < 6; i++) tone(i % 2 ? 1175 : 1397, 0.07, 'square', 0.04, 0.7 + i*0.08); }
@@ -1626,10 +1658,11 @@ function newGame(){
   startRun();
 }
 function startRun(){
-  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = Math.random() < 0.3; momDay = Math.random() < 0.45; spotTaken = Math.random() < 0.3; queueDay = Math.random() < 0.35; tired = false;
+  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = Math.random() < 0.3; actoDay = Math.random() < 0.2; momDay = Math.random() < 0.45; spotTaken = Math.random() < 0.3; queueDay = Math.random() < 0.35; tired = false;
   { const KN = ['ILAN','NOA','BENJA','SHIRA','DAVID','TAMAR','ELI','MAIA','AVI','LEA','YONI','DALIA','TEO','RAFA','JOSI','ARIEL'], prim = Math.random() < 0.3;
-    FK = Math.random() < (level >= 2 ? 1 : 0.7) ? {room: KID_ROOMS[Math.floor(Math.random()*KID_ROOMS.length)], pal: prim ? 'primo' : 'kid' + (1 + Math.floor(Math.random()*6)), name: KN[Math.floor(Math.random()*KN.length)], cousin: prim} : null; }
-  bubbles = []; sawCousin = false; f = 0; carry = false; metGuards = false; called = false; got = {}; surpriseDone = false; loadFloor(0);
+    FK = Math.random() < (level >= 2 ? 1 : 0.7) ? {room: KID_ROOMS[Math.floor(Math.random()*KID_ROOMS.length)], pal: prim ? 'primo' : 'kid' + (1 + Math.floor(Math.random()*6)), name: KN[Math.floor(Math.random()*KN.length)], cousin: prim} : null;
+    if (FK && level >= 3) { const n2 = KN.filter(n => n !== FK.name); FK.cousin = false; FK.twin = {pal:'kid' + (1 + Math.floor(Math.random()*6)), name:n2[Math.floor(Math.random()*n2.length)]}; } }
+  bubbles = []; sawCousin = false; f = 0; carry = false; metGuards = false; called = false; got = {}; surpriseDone = false; toy = null; toyDone = false; elevStuckDone = false; loadFloor(0);
   $('title').hidden = true; $('hud').hidden = false; $('hud').classList.toggle('hard', hard); updStars(); $('floor').classList.remove('up');
   car = {x:-80, y:27*16, hazard:false, dOpen:false, rOpen:false}; introT = 0; parts = []; pickIntroLines();
   P.hidden = true; M.hidden = true; state = 'intro';
@@ -1641,8 +1674,11 @@ function endIntro(){
   else { Object.assign(P, mkEnt(1, 26, 'up'), {hidden:false, viaElev:false}); Object.assign(M, mkEnt(0, 26, 'up'), {hidden:false}); }
   state = 'play';
   if (rain) bubbles.push({ent:M, up:0, text:'LLUEVE, PAPI!', life:110, delay:10});
-  if (LEVELS[level-1].intro) say(['NIVEL ' + level + ': ' + LEVELS[level-1].intro]);
-  if (hard) say(['MODO DIFÍCIL: hoy Romi anda por la escalera.']);
+  const L = [];
+  if (LEVELS[level-1].intro) L.push('NIVEL ' + level + ': ' + LEVELS[level-1].intro);
+  if (hard) L.push('MODO DIFÍCIL: hoy Romi anda por la escalera.');
+  if (actoDay) L.push('¡HOY HAY ACTO EN EL HALL! Están las sillas armadas: no se puede pasar por el medio.');
+  if (L.length) say(L);
 }
 const IA = 170, ID = 430; // llegada del auto / se abre la puerta
 function stepIntro(){
@@ -1677,12 +1713,25 @@ function floorCard(viaElev, cb){
   state = 'trans'; const el = $('fcard'), num = $('fcNum'); let n = 0;
   num.textContent = '0'; $('fcT').textContent = 'PISO ' + level; $('fcS').textContent = LEVELS[level-1].name; $('fcArrow').textContent = '▲';
   el.querySelector('.fsign').style.visibility = 'hidden'; el.hidden = false;
+  const stuckHere = viaElev && !elevStuckDone && Math.random() < 0.35;
   const tickN = () => {
+    if (stuckHere && !elevStuckDone && n >= Math.min(1, level - 1)) { elevStuckDone = true; return startMash(tickN); }
     if (n < level) { n++; num.textContent = n; SFX.blip(); setTimeout(tickN, viaElev ? 520 : 1300); return; }
     SFX.ding(); el.querySelector('.fsign').style.visibility = 'visible';
     setTimeout(() => { el.hidden = true; cb(); }, 1300);
   };
   setTimeout(tickN, 380);
+}
+let elevStuckDone = false, mashN = 0, mashIv = null, mashCb = null;
+function startMash(cb){ // el ascensor se trabó entre pisos: hay que tocar A rápido (el timbre de alarma)
+  state = 'mash'; mashN = 0; mashCb = cb; shakeT = 20; SFX.bump(); if (!muted) tone(90, 0.3, 'square', 0.05);
+  $('fcT').textContent = '¡SE TRABO!'; $('fcArrow').textContent = '!'; $('fcard').querySelector('.fsign').style.visibility = 'visible'; drawMash();
+  mashIv = setInterval(() => { if (mashN > 0) { mashN--; drawMash(); } }, 420);
+}
+function drawMash(){ $('fcS').textContent = 'APRETA A RAPIDO ' + '■'.repeat(mashN) + '□'.repeat(Math.max(0, 10 - mashN)); }
+function mashA(){
+  mashN++; if (!muted) tone(600 + mashN*60, 0.05, 'square', 0.035); drawMash();
+  if (mashN >= 10) { clearInterval(mashIv); state = 'trans'; f += Math.round(FPM*0.1); SFX.ding(); $('fcT').textContent = 'PISO ' + level; $('fcS').textContent = '¡ARRANCO!'; $('fcArrow').textContent = '▲'; setTimeout(() => { $('fcard').querySelector('.fsign').style.visibility = 'hidden'; $('fcS').textContent = LEVELS[level-1].name; mashCb(); }, 700); }
 }
 function goFloor1(viaElev, walk){
   carry = (!viaElev && !walk) || tired; if (!viaElev && level > 1) f += Math.round(FPM*0.25*(level - 1)); loadFloor(level, viaElev, walk); state = 'play'; $('floor').classList.remove('up'); void $('floor').offsetWidth; $('floor').classList.add('up');
@@ -1692,20 +1741,26 @@ let metGuards = false;
 function stepPlayer(dx, dy, dur){
   const ox = P.tx, oy = P.ty;
   startMove(P, dx, dy, dur);
-  { const t = at(P.tx, P.ty); if (!muted) { if ('sbtm^'.includes(t)) tone(140, 0.03, 'triangle', 0.035); else if ('a'.includes(t)) tone(95, 0.04, 'triangle', 0.035); else if ('/R'.includes(t)) tone(220, 0.03, 'square', 0.012); else tone(330 + (P.step ? 30 : 0), 0.018, 'square', 0.01); } }
+  { const t = at(P.tx, P.ty); if (!muted) { if ('sbtm^'.includes(t)) tone(140, 0.03, 'triangle', 0.035); else if (',:;'.includes(t)) tone(240 + (P.step ? 20 : 0), 0.03, 'triangle', 0.025); else if ('q'.includes(t)) tone(400 + (P.step ? 40 : 0), 0.015, 'square', 0.01); else if ('a'.includes(t)) tone(95, 0.04, 'triangle', 0.035); else if ('/R'.includes(t)) tone(220, 0.03, 'square', 0.012); else tone(330 + (P.step ? 30 : 0), 0.018, 'square', 0.01); } }
   trail.unshift([ox, oy]); trail.length = Math.min(trail.length, 4);
   if (!carry && !M.stuck && floorIdx >= 1 && stuckCD <= 0 && stuckN < 3 && Math.random() < 0.2) {
     const g = [['left',-1,0],['right',1,0],['up',0,-1],['down',0,1]].find(([d, gx, gy]) => 'Zd'.includes(at(M.tx + gx, M.ty + gy)) || (at(M.tx + gx, M.ty + gy) === '.' && 'Zd'.includes(at(M.tx + 2*gx, M.ty + 2*gy))));
     if (g) { M.stuck = true; M.why = 'MIRANDO'; M.dir = g[0]; stuckN++; stuckCD = 900; bubbles.push({ent:M, up:0, text:'PAPI, MIRA!', life:120, delay:6}); }
   }
   // de la nada, Meir se frena y se queda atrás
-  if (!carry && !M.stuck && stuckCD <= 0 && stuckN < 4 && (floorIdx >= 1 || P.ty <= 16) && Math.random() < 0.035) {
+  if (!carry && !M.stuck && stuckCD <= 0 && stuckN < 3 && (floorIdx >= 1 || P.ty <= 16) && Math.random() < 0.02) {
     M.stuck = true; M.why = 'ATRAS'; M.dir = ['left','right','up','down'][Math.floor(Math.random()*4)]; stuckN++; stuckCD = 700;
-    bubbles.push({ent:M, up:0, text:['UN BICHITO!','ESPERA, PAPI!','ME CANSE...','MIRA ESTA PIEDRITA!','ME QUEDO ACA!','UN PAPELITO!','NO QUIERO MAS!','ME PICA LA PANZA!'][Math.floor(Math.random()*8)], life:110, delay:4});
+    bubbles.push({ent:M, up:0, text:['UN BICHITO!','ESPERA!','ME CANSE','UN PAPELITO!','NO QUIERO IR!'][Math.floor(Math.random()*5)], life:110, delay:4});
   }
+  const mx0 = M.tx, my0 = M.ty, mWalk = !carry && !M.stuck;
   if (!carry && !M.stuck) { M.dir = ox > M.tx ? 'right' : ox < M.tx ? 'left' : oy > M.ty ? 'down' : 'up'; startMove(M, ox - M.tx, oy - M.ty, dur); }
   moveFK(dur);
-  if (floorIdx >= 1 && !carry && !M.stuck && Math.random() < 0.05 && Object.values(DIRS).some(([dx, dy]) => at(M.tx + dx, M.ty + dy) === 'n') && !bubbles.some(b => b.ent === M)) bubbles.push({ent:M, up:0, text: Math.random() < .5 ? 'HOLAAA, ABAJO!' : 'CHAU, HALL!', life:80, delay:8});
+  if (!toyDone && mWalk && floorIdx >= 1 && f - floorStartF > 240 && Math.random() < 0.05) { toyDone = true; toy = {x:mx0, y:my0, steps:0, noticed:false, got:false, floor:floorIdx}; if (!muted) tone(180, 0.05, 'triangle', 0.03); }
+  if (toy && !toy.got && toy.floor === floorIdx) {
+    if (!toy.noticed && ++toy.steps >= 6) { toy.noticed = true; bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'MI AUTITO! SE ME CAYO!', life:130, delay:0}); guideT = 200; }
+    if ((P.tx === toy.x && P.ty === toy.y) || (!carry && M.tx === toy.x && M.ty === toy.y)) { toy.got = true; SFX.star(); bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'MI AUTITO!', life:90, delay:0}); }
+  }
+  if (floorIdx >= 1 && !carry && !M.stuck && Math.random() < 0.015 && Object.values(DIRS).some(([dx, dy]) => at(M.tx + dx, M.ty + dy) === 'n') && !bubbles.some(b => b.ent === M)) bubbles.push({ent:M, up:0, text: Math.random() < .5 ? 'HOLAAA, ABAJO!' : 'CHAU, HALL!', life:80, delay:8});
 }
 function onArrive(){
   const ch = at(P.tx, P.ty);
@@ -1765,7 +1820,17 @@ function onArrive(){
       lines.push('¡9:30 EN PUNTO!', 'Todas las salas salen a festejar: ¡¡¡LLEGÓ MEIR!!!');
     }
     if (level === 3) { lines.push('TODA LA SALA (cantando): ¡Llegó Meir, llegó Meir, buen día, buen día!'); for (const k of kids) { k.em = 260; k.emk = 'note'; } ROOM.forEach((nn, k) => nn && tone(N[nn], 0.22, 'triangle', 0.05, 1 + k*0.2)); }
-    if (FK && FK.mode === 'follow') lines.push('MORÁ: ¡Y gracias por traer a ' + FK.name + '! Yo lo llevo a su sala.');
+    if (FK && FK.mode === 'follow') lines.push(FK.twin ? 'MORÁ: ¡Y gracias por traer a ' + FK.name + ' y ' + FK.twin.name + '! Yo los llevo a su sala.' : 'MORÁ: ¡Y gracias por traer a ' + FK.name + '! Yo lo llevo a su sala.');
+    { // festejo: los chicos saludan a Meir + un festejo distinto cada vez
+      const near = kids.slice().sort((a, b) => (Math.abs(a.tx - P.tx) + Math.abs(a.ty - P.ty)) - (Math.abs(b.tx - P.tx) + Math.abs(b.ty - P.ty))).slice(0, 3);
+      const G = ['HOLA, MEIR!','MEIIIR!','LLEGASTE!'].sort(() => Math.random() - .5);
+      near.slice(0, 2).forEach((k, i) => bubbles.push({ent:k, up:0, text:nm(G[i]), life:110, delay:10 + i*25}));
+      const fest = ['salto','globos','estrellas','coro'][Math.floor(Math.random()*4)];
+      if (fest === 'salto') for (const k of kids) k.hop = 120;
+      if (fest === 'globos') spawn(P.px + 8, P.py + 4, 14, {sp:1.4, vy:-0.7, g:-0.004, life:150, s:3, cols:['#e5432f','#2f52c2','#ffe14d','#62a83c','#f29ac2']});
+      if (fest === 'estrellas') for (let i = 0; i < 3; i++) setTimeout(() => spawn(P.px + 8 + (i - 1)*30, P.py - 18, 26, {sp:3, vy:-1.6, g:0.06, life:60, s:2, cols:['#ffe14d','#ffffff','#f2c12e']}), i*250);
+      if (fest === 'coro' && level !== 3) { lines.push('LA SALA (aplaudiendo): ¡MEIR! ¡MEIR! ¡MEIR!'); if (!muted) for (let i = 0; i < 6; i++) tone(i % 2 ? 784 : 659, 0.08, 'square', 0.035, 0.9 + i*0.22); }
+    }
     lines.push('MEIR: ¡Chau papi!');
     bubbles.push({ent:P, up:0, text:'MUAC!', life:70, delay:0});
     spawn(P.px + 8, P.py - 2, 14, {sp:1.2, vy:-1.2, life:50, s:2, cols:['#e5432f','#f29ac2','#ffffff']});
@@ -1847,10 +1912,11 @@ function step(){
       P.dir = d;
       const tx = P.tx + dx, ty = P.ty + dy;
       if (!carry && floorIdx === 0 && 'a1234'.includes(at(tx, ty)) && !'a1234'.includes(at(P.tx, P.ty))) { if (bumpCD <= 0) { SFX.bump(); bumpCD = 50; bubbles.push({ent:M, up:0, text:'A LA CALLE NO, PAPI!', life:80, delay:0}); } }
+      else if (toy && !toy.got && toy.floor === floorIdx && at(tx, ty) === 'G') { if (bumpCD <= 0) { SFX.bump(); bumpCD = 60; toy.noticed = true; guideT = 200; bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'NO ME VOY SIN MI AUTITO!', life:100, delay:0}); } }
       else if (M.stuck && at(tx, ty) === 'G') { if (bumpCD <= 0) { SFX.bump(); bumpCD = 60; bubbles.push({ent:P, up:0, text:'TE OLVIDASTE A MEIR!', life:90, delay:0}); } }
       else if (M.stuck && M.tx === tx && M.ty === ty) bump(tx, ty);
       else if (freeFor(tx, ty)) {
-        if (running) spawn(P.tx*TS + 8, P.ty*TS + 14, 3, {sp:0.6, vy:-0.25, life:12, cols:['#d8d2c4','#bfb8a8','#ffffff']});
+        if (running) { spawn(P.tx*TS + 8, P.ty*TS + 14, 3, {sp:0.6, vy:-0.25, life:12, cols:['#d8d2c4','#bfb8a8','#ffffff']}); if (Math.random() < 0.5) spawn(P.tx*TS + 8, P.ty*TS + 6, 1, {sp:1.2, vy:-0.6, life:14, cols:['#ffe14d','#ffffff']}); }
         stepPlayer(dx, dy, dur);
       } else bump(P.tx + dx, P.ty + dy);
     }
@@ -1877,7 +1943,13 @@ function step(){
     if (w.sneezeT === undefined) w.sneezeT = 700 + Math.floor(Math.random()*700);
     if (w.achis > 0) { w.achis--; w.sight = []; } else if (state === 'play' && --w.sneezeT <= 0) { w.sneezeT = 900 + Math.floor(Math.random()*900); w.achis = 75; w.sight = []; bubbles.push({ent:w, up:10, text: Math.random() < .5 ? 'ACHIS!' : 'COF, COF!', life:70, delay:0}); tone(1200, 0.08, 'square', 0.03, 0, -700); }
     else computeSight(w);
-    const seen = w.sight.includes(P.tx + ',' + P.ty) || (!carry && w.sight.includes(M.tx + ',' + M.ty)) || (!!FK && FK.mode === 'follow' && w.sight.includes(FK.tx + ',' + FK.ty));
+    if (w.chaseCD > 0) w.chaseCD--;
+    if (state === 'play' && !(w.chase > 0) && !(w.chaseCD > 0) && !(w.achis > 0) && Math.abs(w.tx - P.tx) + Math.abs(w.ty - P.ty) <= 6 && los(w.tx, w.ty, P.tx, P.ty) && Math.random() < 0.006) {
+      w.chase = 140; w.chaseCD = 1000; w.bang = 45; w.lookQ = []; tense = true;
+      if (!muted) { tone(988, 0.06, 'square', 0.05); tone(1319, 0.12, 'square', 0.05, 0.07); }
+      bubbles.push({ent:w, up:10, text: nm('¿MEIR? ¿SOS VOS?'), life:90, delay:20});
+    }
+    const seen = w.sight.includes(P.tx + ',' + P.ty) || (!carry && w.sight.includes(M.tx + ',' + M.ty)) || (!!FK && FK.mode === 'follow' && (w.sight.includes(FK.tx + ',' + FK.ty) || (!!FK.twin && w.sight.includes(FK.twin.tx + ',' + FK.twin.ty))));
     w.seen = seen ? w.seen + 1 : 0;
     if (w.seen >= 3) {
       caught = w; caughtT = 0; state = 'caught'; SFX.alert();
@@ -1937,6 +2009,7 @@ function guideTargets(){
     const pts = []; for (let y = 0; y < MH; y++) { if (at(1, y) === 'E' && !pts.some(p => p[2] === 'ASCENSOR')) pts.push([1, y + 0.5, 'ASCENSOR']); if (at(1, y) === 'S' && !pts.some(p => p[2] === 'ESCALERA')) pts.push([1, y + 0.5, 'ESCALERA']); }
     return {goal:'SUBI POR LA ESCALERA O EL ASCENSOR', pts};
   }
+  if (toy && toy.noticed && !toy.got && toy.floor === floorIdx) return {goal:'BUSCA EL AUTITO QUE SE LE CAYO A MEIR', pts:[[toy.x, toy.y, 'AUTITO']]};
   const pts = []; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (map[y][x] === 'G' && !pts.length) pts.push([x + (at(x + 1, y) === 'G' ? 0.5 : 0), y, LEVELS[level-1].name]);
   return {goal:'LLEVA A MEIR A LA PUERTA DE ' + LEVELS[level-1].name, pts};
 }
@@ -1995,6 +2068,7 @@ function render(){
   cx = mw <= VW ? (mw - VW)/2 : Math.max(0, Math.min(mw - VW, cx));
   cy = mh <= VH ? (mh - VH)/2 : Math.max(0, Math.min(mh - VH, cy));
   if (state === 'caught' && caughtT < 24) { cx += Math.round(Math.random()*4 - 2); cy += Math.round(Math.random()*4 - 2); }
+  if (shakeT > 0) { shakeT--; cx += Math.round(Math.random()*4 - 2); cy += Math.round(Math.random()*4 - 2); }
   ctx.drawImage(baked, -cx, -cy);
 
   if (state === 'wait') {
@@ -2032,8 +2106,9 @@ function render(){
   for (const g of ghosts) if ((g.prop === 'stroller' || g.prop === 'cart') && !g.gone && !(g.delay > 0)) { const [ddx, ddy] = DIRS[g.e.dir]; ents.push({y:g.e.py + ddy*10 + .02, s:g.prop === 'cart' ? CART : STROLLER, x:g.e.px + ddx*11}); }
   for (const g of ghosts) if (!(g.delay > 0)) ents.push({y:g.e.py, s:SPR[g.pal][g.e.dir][frameOf(g.e)], x:g.e.px});
   for (const q of queue) ents.push({y:q.py, s:SPR[q.pal][q.dir][frameOf(q)], x:q.px});
-  for (const k of kids) ents.push({y:k.py, s:SPR[k.pal][k.dir][frameOf(k)], x:k.px, kid:k});
-  if (FK && FK.mode !== 'gone' && !P.hidden) ents.push({y:FK.py - .05, s:SPR[FK.pal][FK.dir][frameOf(FK)], x:FK.px});
+  if (toy && !toy.got && toy.floor === floorIdx) { const x = toy.x*TS - cx + 4, y = toy.y*TS - cy + 9; ctx.fillStyle = OL; ctx.fillRect(x - 1, y - 1, 10, 6); ctx.fillStyle = '#e5432f'; ctx.fillRect(x, y, 8, 3); ctx.fillStyle = '#9ad0ff'; ctx.fillRect(x + 2, y, 3, 1); ctx.fillStyle = '#151515'; ctx.fillRect(x + 1, y + 3, 2, 1); ctx.fillRect(x + 5, y + 3, 2, 1); if (tick % 30 < 15) { ctx.fillStyle = '#ffe14d'; ctx.fillRect(x + 8, y - 3, 1, 1); } }
+  for (const k of kids) { const hop = k.hop > 0 ? (k.hop--, Math.round(Math.abs(Math.sin(k.hop/5))*5)) : 0; ents.push({y:k.py - hop, s:SPR[k.pal][k.dir][frameOf(k)], x:k.px, kid:k}); }
+  if (FK && FK.mode !== 'gone' && !P.hidden) { ents.push({y:FK.py - .05, s:SPR[FK.pal][FK.dir][frameOf(FK)], x:FK.px}); if (FK.twin) ents.push({y:FK.twin.py - .06, s:SPR[FK.twin.pal][FK.twin.dir][frameOf(FK.twin)], x:FK.twin.px}); }
   if (!carry && !M.hidden) ents.push({y:M.py, s:SPR.meir[M.dir][frameOf(M)], x:M.px});
   if (!P.hidden) ents.push({y:P.py + .1, s:SPR[hero][P.dir][frameOf(P)], x:P.px, isP:true});
   ents.sort((a, b) => a.y - b.y);
@@ -2069,6 +2144,8 @@ function render(){
   { const r = watchers && watchers.find(w => w.threat); const cover = '#CLZWkTUOMNd';
     if (r && state === 'play' && Math.abs(r.tx - P.tx) + Math.abs(r.ty - P.ty) <= 8 && Object.values(DIRS).some(([dx, dy]) => 'C'.includes(at(P.tx + dx, P.ty + dy))) && !los(r.tx, r.ty, P.tx, P.ty)) {
       const x = Math.round(P.px - cx) + 2, y = Math.round(P.py - cy) - 16 - (carry ? 12 : 0); plaque(ctx, 'SHH', x + 6, y, '#1d2236', '#ffffff'); } }
+  for (const w of watchers || []) if (w.bang > 0) { w.bang--; const hop = Math.max(0, 6 - Math.abs(45 - w.bang - 6)); const bx = Math.round(w.px - cx + 4), by = Math.round(w.py - cy - 26 - hop);
+    ctx.fillStyle = OL; ctx.fillRect(bx - 1, by - 1, 10, 13); ctx.fillStyle = '#ffffff'; ctx.fillRect(bx, by, 8, 11); ctx.fillStyle = '#e5432f'; ctx.fillRect(bx + 3, by + 2, 2, 5); ctx.fillRect(bx + 3, by + 8, 2, 2); }
   if (M.stuck && !carry && tick % 40 < 30) drawEmote(Math.round(M.px - cx) + 4, Math.round(M.py - cy) - 14, 'heart');
   for (const b of bubbles) {
     if (b.delay > 0) continue;
@@ -2098,6 +2175,9 @@ function render(){
     ctx.fillStyle = OL; ctx.fillRect(bx-1, by-1, 7, 11); ctx.fillStyle = '#2b2f35'; ctx.fillRect(bx, by, 5, 9); ctx.fillStyle = '#9ad0ff'; ctx.fillRect(bx+1, by+1, 3, 5); ctx.fillStyle = '#ffffff'; ctx.fillRect(bx+2, by+7, 1, 1);
   }
   for (const p of parts) { ctx.fillStyle = p.col; ctx.fillRect(Math.round(p.x - cx), Math.round(p.y - cy), p.s, p.s); }
+  if (floorIdx === 0) for (const b of pigeons) { const x = Math.round(b.x - cx), y = Math.round(b.y - cy), up = b.fly && tick % 8 < 4;
+    ctx.fillStyle = '#3a3f47'; ctx.fillRect(x - 1, y - 1, 7, 5); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(x, y, 5, 3); ctx.fillStyle = '#6b7480'; ctx.fillRect(x + (b.vx < 0 ? 0 : 4), y - 2, 2, 2); ctx.fillStyle = '#f2a33a'; ctx.fillRect(x + (b.vx < 0 ? -1 : 6), y - 1, 1, 1);
+    if (b.fly) { ctx.fillStyle = '#7d8691'; ctx.fillRect(x - 2, y + (up ? -3 : 1), 3, 2); ctx.fillRect(x + 4, y + (up ? -3 : 1), 3, 2); } else if (tick % 40 < 6) { ctx.fillStyle = '#3a3f47'; ctx.fillRect(x + (b.vx < 0 ? 0 : 4), y + 2, 1, 2); } }
   if (caught) {
     const hop = Math.max(0, 6 - Math.abs(caughtT - 6));
     const bx = Math.round(caught.px - cx + 4), by = Math.round(caught.py - cy - 24 - hop);
