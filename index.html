@@ -279,9 +279,9 @@ const PB = [
 "##..#qcccckkkqqqqqq8q#",
 "#####oooooqqqDDDD#####",
 "###########.wqqqqRR###",
-"###########.wiqqhRR###",
-"############8iqqhRR###",
-"FFFFFFFFFFFFFFgggggFFF",
+"###########.wqqqqRR###",
+"############8qqqqRR###",
+"FFFFFFFFFFFFFggggggFFF",
 "sssmsssmsssmss^^^////s",
 "sssssssssssssssss////s",
 "ssstsssssssssssstsQsss",
@@ -937,14 +937,14 @@ function upGhosts(){
   if (floorIdx !== 0) return;
   // papás que salen del colegio: unos se van caminando, otros se suben a un auto
   if (--walkT <= 0) {
-    walkT = 450 + Math.floor(Math.random()*350);
+    walkT = 1100 + Math.floor(Math.random()*700);
     const pal = PEOPLE[Math.floor(Math.random()*PEOPLE.length)], r = Math.random();
     if (r < 0.35 && !spotTaken) ghost(15, 17, [[15,17],[15,23],[5,23],[5,26]], pal, 13, () => vehicles.push(mkVehicle(4*TS, 27, 'car', 60)));
     else if (r < 0.7) ghost(15, 17, [[15,17],[15,23],[-1,23]], pal, 13);
     else ghost(15, 17, [[15,17],[15,23],[22,23]], pal, 13);
   }
   // mamá apurada que baja de la escalera y corta camino por el pasillito de la izquierda
-  if (--hurryT <= 0) { hurryT = 1100 + Math.floor(Math.random()*600); const g = ghost(3, 3, [[3,3],[3,12],[15,12],[15,23],[22,23]], ['mama1','mama2','papa4'][Math.floor(Math.random()*3)], 10, null, null, true); g.ask = ['PERMISO, LLEGO TARDE AL TRABAJO!','PERMISITO, PERMISITO!','UY, PERDON!']; g.prop = null; }
+  if (--hurryT <= 0) { hurryT = 2400 + Math.floor(Math.random()*1200); const g = ghost(3, 3, [[3,3],[3,12],[15,12],[15,23],[22,23]], ['mama1','mama2','papa4'][Math.floor(Math.random()*3)], 10, null, null, true); g.ask = ['PERMISO, LLEGO TARDE AL TRABAJO!','PERMISITO, PERMISITO!','UY, PERDON!']; g.prop = null; }
   // mamá con cochecito que sube por la rampa (algunos días)
   if (momT > 0 && --momT === 0) ghost(21, 23, [[21,23],[19,23],[19,22],[18,22],[18,21],[18,18],[16,18],[16,17]], ['mama1','mama2'][Math.floor(Math.random()*2)], 20, null, null, true).prop = 'stroller';
   // el auto de atrás te toca bocina si tardás en salir de al lado del auto
@@ -957,7 +957,7 @@ function upGhosts(){
     if (honker.hT > 230) { honker.row = 28; honker.wait = 0; honker = null; }
   }
   // hora pico: entre 9:31 y 9:33 entra mucha más gente al hall
-  if (f >= FPM && f < 3*FPM && --peakT <= 0) {
+  if (false && --peakT <= 0) {
     peakT = 180 + Math.floor(Math.random()*120);
     const R = [[[14,17],[14,13],[5,13],[5,12],[3,12],[3,9]], [[15,17],[15,8],[19,8]], [[14,17],[14,5]], [[15,17],[15,14],[19,14],[19,9]]][Math.floor(Math.random()*4)];
     ghost(R[0][0], R[0][1], R, PEOPLE[Math.floor(Math.random()*PEOPLE.length)], 13);
@@ -1060,7 +1060,6 @@ function meirChat(){
   // primos del otro lado del vacío
   if (!cousinX && (floorIdx === 1 || floorIdx === 2) && P.tx <= 7 && Math.random() < 0.6) {
     cousinX = true; const g = ghost(23, 5, [[23,5],[23,16]], 'primo', 22, null, 'MEIIIR! HOLAAA!');
-    if (!carry) { M.stuck = true; M.why = 'MIRANDO'; M.dir = 'right'; stuckCD = 700; }
     bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'MI PRIMO!', life:90, delay:40});
   }
 }
@@ -1069,17 +1068,19 @@ const PARADE_ROUTES = [[[18,20],[18,19],[11,19],[11,20]], [[5,10],[6,10],[6,15],
 function upPigeons(){
   for (const b of pigeons) {
     if (!b.fly && !P.hidden && state === 'play' && Math.abs(b.x - (P.px + 8)) + Math.abs(b.y - (P.py + 10)) < 30) { b.fly = true; b.vx = (b.x < P.px + 8 ? -1 : 1) * (1.3 + Math.random()); b.vy = -1.1 - Math.random()*0.6; if (!muted) for (let k = 0; k < 4; k++) tone(300 + Math.random()*200, 0.02, 'triangle', 0.02, k*0.05); }
-    if (b.fly) { b.x += b.vx; b.y += b.vy; b.vy -= 0.01; } else if (Math.random() < 0.01) b.vx = -b.vx;
+    if (b.fly) { b.x += b.vx; b.y += b.vy; b.vy -= 0.01; } else { if (Math.random() < 0.01) b.vx = -b.vx; if (Math.random() < 0.02) { const nx = b.x + b.vx*2; if ('s/^'.includes(at(Math.floor((nx + 3)/TS), Math.floor((b.y + 2)/TS)))) b.x = nx; } }
   }
   pigeons = pigeons.filter(b => b.y > -40 && b.x > -40 && b.x < MW*TS + 40);
 }
 function spawnBusy(i){
   pigeons = [];
-  if (i === 0) for (let k = 0; k < 5; k++) { const x = 1 + Math.floor(Math.random()*19), y = 22 + Math.floor(Math.random()*2); if (at(x, y) === 's') pigeons.push({x:x*TS + 4 + Math.random()*8, y:y*TS + 8, vx: Math.random() < .5 ? -1 : 1, vy:0, fly:false}); }
+  if (i === 0) { const groups = 2 + Math.floor(Math.random()*3); // grupitos sueltos, cada una a su altura
+    for (let g = 0; g < groups; g++) { const gx = 12 + Math.random()*(MW*TS - 24), gy = 22*TS + 2 + Math.random()*(3*TS - 6), n = 1 + Math.floor(Math.random()*3);
+      for (let k = 0; k < n; k++) { const x = gx + (Math.random() - .5)*28, y = gy + (Math.random() - .5)*14, t = at(Math.floor((x + 3)/TS), Math.floor((y + 2)/TS));
+        if ('s/^'.includes(t)) pigeons.push({x, y, vx: Math.random() < .5 ? -1 : 1, vy:0, fly:false, peck: Math.floor(Math.random()*40)}); } } }
   const mk = (x, y, route, pal, speed, prop, ask, delay) => { const g = ghost(x, y, route, pal, speed, null, null, true); g.loop = true; g.prop = prop; g.ask = ask; g.delay = delay || 0; return g; };
   if (i === 0) {
     if (!actoDay) mk(6, 13, [[6,13],[19,13]], 'port', 15, 'cart', ['PERMISO, PASO CON LAS CAJAS!','CUIDADO LOS PIES!','ATENCION, CARRITO!'], 40);
-    mk(18, 11, [[18,11],[6,11],[6,15],[18,15],[18,11]], ['kid3','kid5'][Math.floor(Math.random()*2)], 8, 'kid', ['PIIIUUU, SOY UN AVION!','NO ME AGARRAS!','PERDON!'], 160);
   } else {
     mk(6, 4, [[6,4],[23,4],[23,18],[6,18],[6,4]], ['kid1','kid4','kid6'][Math.floor(Math.random()*3)], 8, 'kid', ['PERDON, PERDON!','ME ESTOY YENDO AL BAÑO!','PIIIUUU!'], 60);
     if (false) mk(28, 18, [[28,18],[1,18]], ['papa2','papa3'][Math.floor(Math.random()*2)], 14, null, ['PERMISO!','HOLA, BUEN DIA!'], 200);
@@ -1661,9 +1662,9 @@ function newGame(){
   startRun();
 }
 function startRun(){
-  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = realWeather ? realWeather.rain : Math.random() < 0.25; rainLater = !rain && Math.random() < 0.2 ? FPM*(0.8 + Math.random()*1.5) : 0; actoDay = Math.random() < 0.2; momDay = Math.random() < 0.45; spotTaken = Math.random() < 0.3; queueDay = Math.random() < 0.35; tired = false;
+  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = realWeather ? realWeather.rain : Math.random() < 0.25; rainLater = !rain && Math.random() < 0.2 ? FPM*(0.8 + Math.random()*1.5) : 0; actoDay = Math.random() < 0.2; momDay = Math.random() < 0.25; spotTaken = Math.random() < 0.3; queueDay = Math.random() < 0.1; tired = false;
   { const KN = ['ILAN','NOA','BENJA','SHIRA','DAVID','TAMAR','ELI','MAIA','AVI','LEA','YONI','DALIA','TEO','RAFA','JOSI','ARIEL'], prim = Math.random() < 0.3;
-    FK = Math.random() < (level >= 2 ? 1 : 0.7) ? {room: KID_ROOMS[Math.floor(Math.random()*KID_ROOMS.length)], pal: prim ? 'primo' : 'kid' + (1 + Math.floor(Math.random()*6)), name: KN[Math.floor(Math.random()*KN.length)], cousin: prim} : null;
+    FK = false ? {room: KID_ROOMS[Math.floor(Math.random()*KID_ROOMS.length)], pal: prim ? 'primo' : 'kid' + (1 + Math.floor(Math.random()*6)), name: KN[Math.floor(Math.random()*KN.length)], cousin: prim} : null;
     if (FK && level >= 3) { const n2 = KN.filter(n => n !== FK.name); FK.cousin = false; FK.twin = {pal:'kid' + (1 + Math.floor(Math.random()*6)), name:n2[Math.floor(Math.random()*n2.length)]}; } }
   bubbles = []; sawCousin = false; f = 0; carry = false; metGuards = false; called = false; got = {}; surpriseDone = false; toy = null; toyDone = false; elevStuckDone = false; loadFloor(0);
   $('title').hidden = true; $('hud').hidden = false; $('hud').classList.toggle('hard', hard); updStars(); $('floor').classList.remove('up');
@@ -1743,12 +1744,12 @@ function stepPlayer(dx, dy, dur){
   startMove(P, dx, dy, dur);
   { const t = at(P.tx, P.ty); if (!muted) { if ('sbtm^'.includes(t)) tone(140, 0.03, 'triangle', 0.035); else if (',:;'.includes(t)) tone(240 + (P.step ? 20 : 0), 0.03, 'triangle', 0.025); else if ('q'.includes(t)) tone(400 + (P.step ? 40 : 0), 0.015, 'square', 0.01); else if ('a'.includes(t)) tone(95, 0.04, 'triangle', 0.035); else if ('/R'.includes(t)) tone(220, 0.03, 'square', 0.012); else tone(330 + (P.step ? 30 : 0), 0.018, 'square', 0.01); } }
   trail.unshift([ox, oy]); trail.length = Math.min(trail.length, 4);
-  if (!carry && !M.stuck && floorIdx >= 1 && stuckCD <= 0 && stuckN < 3 && Math.random() < 0.2) {
+  if (false) {
     const g = [['left',-1,0],['right',1,0],['up',0,-1],['down',0,1]].find(([d, gx, gy]) => 'Zd'.includes(at(M.tx + gx, M.ty + gy)) || (at(M.tx + gx, M.ty + gy) === '.' && 'Zd'.includes(at(M.tx + 2*gx, M.ty + 2*gy))));
     if (g) { M.stuck = true; M.why = 'MIRANDO'; M.dir = g[0]; stuckN++; stuckCD = 900; bubbles.push({ent:M, up:0, text:'PAPI, MIRA!', life:120, delay:6}); }
   }
   // de la nada, Meir se frena y se queda atrás
-  if (!carry && !M.stuck && stuckCD <= 0 && stuckN < 3 && (floorIdx >= 1 || P.ty <= 16) && Math.random() < 0.02) {
+  if (false) {
     M.stuck = true; M.why = 'ATRAS'; M.dir = ['left','right','up','down'][Math.floor(Math.random()*4)]; stuckN++; stuckCD = 700;
     bubbles.push({ent:M, up:0, text:['UN BICHITO!','ESPERA!','ME CANSE','UN PAPELITO!','NO QUIERO IR!'][Math.floor(Math.random()*5)], life:110, delay:4});
   }
@@ -2177,7 +2178,7 @@ function render(){
   for (const p of parts) { ctx.fillStyle = p.col; ctx.fillRect(Math.round(p.x - cx), Math.round(p.y - cy), p.s, p.s); }
   if (floorIdx === 0) for (const b of pigeons) { const x = Math.round(b.x - cx), y = Math.round(b.y - cy), up = b.fly && tick % 8 < 4;
     ctx.fillStyle = '#3a3f47'; ctx.fillRect(x - 1, y - 1, 7, 5); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(x, y, 5, 3); ctx.fillStyle = '#6b7480'; ctx.fillRect(x + (b.vx < 0 ? 0 : 4), y - 2, 2, 2); ctx.fillStyle = '#f2a33a'; ctx.fillRect(x + (b.vx < 0 ? -1 : 6), y - 1, 1, 1);
-    if (b.fly) { ctx.fillStyle = '#7d8691'; ctx.fillRect(x - 2, y + (up ? -3 : 1), 3, 2); ctx.fillRect(x + 4, y + (up ? -3 : 1), 3, 2); } else if (tick % 40 < 6) { ctx.fillStyle = '#3a3f47'; ctx.fillRect(x + (b.vx < 0 ? 0 : 4), y + 2, 1, 2); } }
+    if (b.fly) { ctx.fillStyle = '#7d8691'; ctx.fillRect(x - 2, y + (up ? -3 : 1), 3, 2); ctx.fillRect(x + 4, y + (up ? -3 : 1), 3, 2); } else if ((tick + b.peck) % 40 < 6) { ctx.fillStyle = '#3a3f47'; ctx.fillRect(x + (b.vx < 0 ? 0 : 4), y + 2, 1, 2); } }
   if (caught) {
     const hop = Math.max(0, 6 - Math.abs(caughtT - 6));
     const bx = Math.round(caught.px - cx + 4), by = Math.round(caught.py - cy - 24 - hop);
