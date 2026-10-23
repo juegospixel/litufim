@@ -966,11 +966,11 @@ function upGhosts(){
   // gente que pasa caminando por la vereda (no entra al colegio)
   if (--paseoT <= 0) { paseoT = 220 + Math.floor(Math.random()*260); const ltr = Math.random() < .5; ghost(ltr ? -1 : 22, 23, ltr ? [[-1,23],[22,23]] : [[22,23],[-1,23]], PEOPLE[Math.floor(Math.random()*PEOPLE.length)], 11 + Math.floor(Math.random()*6)); }
   // Elvio, el de seguridad, apura a todos
-  if (--elvioT <= 0) { elvioT = 330 + Math.floor(Math.random()*260); const w = watchers.find(x => x.name === 'ELVIO'); if (w && (P.ty >= 17 || facadeA > 0.5) && !bubbles.some(b => b.ent === w)) { shakeT = 14; if (!muted) tone(110, 0.16, 'square', 0.035); bubbles.push({ent:w, up:10, text:'ELVIO: ' + ['AVANCEN, AVANCEN!','VAMOS, QUE SE ARMA FILA!','DALE, DALE, AVANCEN!','NO SE QUEDEN EN LA PUERTA!','AVANCEN, POR FAVOR!'][Math.floor(Math.random()*5)], life:110, delay:0}); } }
+  if (--elvioT <= 0) { elvioT = 330 + Math.floor(Math.random()*260); const w = watchers.find(x => x.name === 'ELVIO'); if (w && (P.ty >= 17 || facadeA > 0.5) && !bubbles.some(b => b.ent === w)) { shakeT = 14; bubbles.push({ent:w, up:10, text:'ELVIO: ' + ['AVANCEN, AVANCEN!','VAMOS, QUE SE ARMA FILA!','DALE, DALE, AVANCEN!','NO SE QUEDEN EN LA PUERTA!','AVANCEN, POR FAVOR!'][Math.floor(Math.random()*5)], life:110, delay:0}); } }
   if (actoDay && facadeA < 0.5 && Math.random() < 0.002) { const d = watchers.find(x => x.pal === 'dir'); if (d && !bubbles.some(b => b.ent === d)) bubbles.push({ent:d, up:0, text:['SHHH, QUE EMPIEZA EL ACTO!','SE SIENTAN, POR FAVOR!','PROBANDO, PROBANDO...'][Math.floor(Math.random()*3)], life:100, delay:0}); }
   upPigeons();
   // autos y colectivos que pasan por la calle
-  if (--carT <= 0) { carT = 16 + Math.floor(Math.random()*36); const r = Math.random(); vehicles.push(mkVehicle(-70, 28, r < 0.5 ? 'car' : r < 0.72 ? 'taxi' : r < 0.9 ? 'bus' : 'school', 0)); }
+  if (--carT <= 0) { carT = 100 + Math.floor(Math.random()*140); if (vehicles.some(v => v.row === 28 && v.x < 60)) { carT = 30; } else { const r = Math.random(); vehicles.push(mkVehicle(-70, 28, r < 0.5 ? 'car' : r < 0.72 ? 'taxi' : r < 0.9 ? 'bus' : 'school', 0)); } }
   for (const v of vehicles) {
     if (v.wait > 0) { v.wait--; continue; }
     const front = Math.floor((v.x + v.len*TS + 2) / TS);
@@ -990,7 +990,7 @@ function upGhosts(){
 const CAR_COLS = ['#e5432f','#2f52c2','#3b3f46','#c0c4c8','#2e9e5b','#f2c12e'];
 const BUS_LIV = [['#efe9da','#c0392b','#1f4fa8'], ['#f2c12e','#2e9e5b','#1b1b1b'], ['#ffffff','#e5432f','#f2c12e'], ['#5bb8e8','#ffffff','#1f4fa8'], ['#e86fa0','#ffffff','#5a2a6a']];
 function mkVehicle(x, row, kind, wait){ const big = kind === 'bus', sch = kind === 'school'; return {x, row, kind, len: big ? 4 : sch ? 3 : 2, v: big ? 1.15 : sch ? 1.3 : kind === 'taxi' ? 1.9 : 1.5 + Math.random()*0.5, col: kind === 'taxi' ? '#1b1b1b' : sch ? '#f28a1e' : CAR_COLS[Math.floor(Math.random()*CAR_COLS.length)], liv: BUS_LIV[Math.floor(Math.random()*BUS_LIV.length)], line: [12,15,19,34,39,60,93,152][Math.floor(Math.random()*8)], wait, honked:false}; }
-const inVehicle = (x, y) => floorIdx === 0 && ((spotTaken && y === 27 && (x === 19 || x === 20)) || vehicles.some(v => v.row === y && x >= Math.floor(v.x / TS) && x <= Math.floor((v.x + v.len*TS - 1) / TS)));
+const inVehicle = (x, y) => floorIdx === 0 && ((y === 26 && x <= 2) || (spotTaken && y === 26 && (x === 19 || x === 20)) || vehicles.some(v => v.row === y && x >= Math.floor(v.x / TS) && x <= Math.floor((v.x + v.len*TS - 1) / TS)));
 function drawVehicle(v, cx, cy){
   const x = Math.round(v.x - cx), y = v.row*TS - cy, L = v.len*TS - 2;
   ctx.fillStyle = 'rgba(20,20,40,.22)'; ctx.fillRect(x+2, y+13, L, 3);
@@ -1067,7 +1067,7 @@ const PARADE_ROUTES = [[[18,20],[18,19],[11,19],[11,20]], [[5,10],[6,10],[6,15],
 // cosas que se mueven y molestan el camino (para que no sea solo entrar, izquierda y subir)
 function upPigeons(){
   for (const b of pigeons) {
-    if (!b.fly && !P.hidden && state === 'play' && Math.abs(b.x - (P.px + 8)) + Math.abs(b.y - (P.py + 10)) < 30) { b.fly = true; b.vx = (b.x < P.px + 8 ? -1 : 1) * (1.3 + Math.random()); b.vy = -1.1 - Math.random()*0.6; if (!muted) for (let k = 0; k < 4; k++) tone(300 + Math.random()*200, 0.02, 'triangle', 0.02, k*0.05); }
+    if (!b.fly && !P.hidden && state === 'play' && Math.abs(b.x - (P.px + 8)) + Math.abs(b.y - (P.py + 10)) < 30) { b.fly = true; b.vx = (b.x < P.px + 8 ? -1 : 1) * (1.3 + Math.random()); b.vy = -1.1 - Math.random()*0.6; }
     if (b.fly) { b.x += b.vx; b.y += b.vy; b.vy -= 0.01; } else { if (Math.random() < 0.01) b.vx = -b.vx; if (Math.random() < 0.02) { const nx = b.x + b.vx*2; if ('s/^'.includes(at(Math.floor((nx + 3)/TS), Math.floor((b.y + 2)/TS)))) b.x = nx; } }
   }
   pigeons = pigeons.filter(b => b.y > -40 && b.x > -40 && b.x < MW*TS + 40);
@@ -1597,7 +1597,7 @@ function rainSound(on){
     const buf = a.createBuffer(1, a.sampleRate * 2, a.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2 - 1) * 0.5;
     const src = a.createBufferSource(), flt = a.createBiquadFilter(), g = a.createGain();
-    src.buffer = buf; src.loop = true; flt.type = 'highpass'; flt.frequency.value = 1400; g.gain.value = 0.03;
+    src.buffer = buf; src.loop = true; flt.type = 'highpass'; flt.frequency.value = 1400; g.gain.value = 0.014;
     src.connect(flt); flt.connect(g); g.connect(a.destination); src.start(); rainNode = src;
   } else if (!on && rainNode) { try { rainNode.stop(); } catch(_) {} rainNode = null; }
 }
@@ -1630,7 +1630,7 @@ function drawItem(it, x, y){
 }
 
 /* ================= LLEGADA EN AUTO ================= */
-let car = {x:16, y:27*16, hazard:true, dOpen:false, rOpen:false}, introT = 0, wasInside = false, bumpCD = 0;
+let car = {x:12, y:26*16, hazard:true, dOpen:false, rOpen:false}, introT = 0, wasInside = false, bumpCD = 0;
 let storySeen = false, called = false, bubbles = [], wet = {}, sawCousin = false, wipeT = 0;
 let cState = null;
 function choose(q, opts, cb){
@@ -1668,14 +1668,13 @@ function startRun(){
     if (FK && level >= 3) { const n2 = KN.filter(n => n !== FK.name); FK.cousin = false; FK.twin = {pal:'kid' + (1 + Math.floor(Math.random()*6)), name:n2[Math.floor(Math.random()*n2.length)]}; } }
   bubbles = []; sawCousin = false; f = 0; carry = false; metGuards = false; called = false; got = {}; surpriseDone = false; toy = null; toyDone = false; elevStuckDone = false; loadFloor(0);
   $('title').hidden = true; $('hud').hidden = false; $('hud').classList.toggle('hard', hard); updStars(); $('floor').classList.remove('up');
-  car = {x:-80, y:27*16, hazard:false, dOpen:false, rOpen:false}; introT = 0; parts = []; pickIntroLines();
+  car = {x:-80, y:26*16, hazard:false, dOpen:false, rOpen:false}; introT = 0; parts = []; pickIntroLines();
   P.hidden = true; M.hidden = true; state = 'intro';
 }
 function endIntro(){
   honkT = 230; honker = null; momT = momDay ? 140 + Math.floor(Math.random()*120) : 0;
-  car.x = spotTaken ? 19*TS : 16; car.hazard = true; car.dOpen = car.rOpen = false;
-  if (spotTaken) { Object.assign(P, mkEnt(19, 25, 'up'), {hidden:false, viaElev:false}); Object.assign(M, mkEnt(19, 26, 'up'), {hidden:false}); }
-  else { Object.assign(P, mkEnt(1, 26, 'up'), {hidden:false, viaElev:false}); Object.assign(M, mkEnt(0, 26, 'up'), {hidden:false}); }
+  car.x = spotTaken ? 19*TS : 12; car.hazard = true; car.dOpen = car.rOpen = false;
+  { const cxT = spotTaken ? 19 : 1; Object.assign(P, mkEnt(cxT, 24, 'up'), {hidden:false, viaElev:false}); Object.assign(M, mkEnt(cxT, 25, 'up'), {hidden:false}); }
   state = 'play';
   if (rain) bubbles.push({ent:M, up:0, text:'LLUEVE, PAPI!', life:100, delay:110});
   const L = [];
@@ -1687,17 +1686,17 @@ function endIntro(){
 const IA = 170, ID = 200; // llegada del auto / se abre la puerta
 function stepIntro(){
   const t = ++introT;
-  const TX = spotTaken ? 19*TS : 16;
+  const TX = spotTaken ? 19*TS : 12, CT = spotTaken ? 19 : 1;
   if (t <= IA - 10) { const e = 1 - Math.pow(1 - t/(IA - 10), 3); car.x = -80 + (TX + 80)*e; if (t % 20 === 0) SFX.engine(); }
   const at = dx => ({px:car.x + dx, py:car.y - 2});
   if (spotTaken && t === 70) { tone(392, 0.12, 'square', 0.03); tone(330, 0.16, 'square', 0.03, 0.13); bubbles.push({ent:at(20), up:0, text:'UF, OCUPADO!', life:70, delay:0}); }
   if (spotTaken && t === 115) bubbles.push({ent:{px:15*TS, py:car.y - 2}, up:0, text:'VOY BIEN ADELANTE', life:60, delay:0});
   if (t === IA) { SFX.park(); car.hazard = true; }
-  if (t === ID) { car.dOpen = true; SFX.door(); Object.assign(P, mkEnt(spotTaken ? 20 : 2, 26, 'up')); P.hidden = false; }
-  if (t === ID + 8) { P.dir = 'left'; startMove(P, -1, 0, 7); }
+  if (t === ID) { car.dOpen = true; SFX.door(); Object.assign(P, mkEnt(CT, 25, 'up')); P.hidden = false; }
+  if (t === ID + 8) { P.dir = 'up'; startMove(P, 0, -1, 7); }
   tickMove(P);
   if (t === ID + 18) { P.dir = 'down'; car.rOpen = true; SFX.door(); }
-  if (t === ID + 26) { if (spotTaken) { Object.assign(M, mkEnt(19, 27, 'up')); startMove(M, 0, -1, 9); } else { Object.assign(M, mkEnt(1, 27, 'left')); startMove(M, -1, -1, 9); } M.hidden = false; SFX.hi(); }
+  if (t === ID + 26) { Object.assign(M, mkEnt(CT, 25, 'up')); M.hidden = false; SFX.hi(); }
   tickMove(M);
   if (t === ID + 38) { car.dOpen = car.rOpen = false; SFX.door(); P.dir = 'up'; M.dir = 'up'; bubbles.push({ent:P, up:0, text:'RAPIDO, QUE ROMI NO NOS VEA!', life:90, delay:0}); }
   if (t === ID + 48) endIntro();
@@ -1742,7 +1741,7 @@ let metGuards = false;
 function stepPlayer(dx, dy, dur){
   const ox = P.tx, oy = P.ty;
   startMove(P, dx, dy, dur);
-  { const t = at(P.tx, P.ty); if (!muted) { if ('sbtm^'.includes(t)) tone(140, 0.03, 'triangle', 0.035); else if (',:;'.includes(t)) tone(240 + (P.step ? 20 : 0), 0.03, 'triangle', 0.025); else if ('q'.includes(t)) tone(400 + (P.step ? 40 : 0), 0.015, 'square', 0.01); else if ('a'.includes(t)) tone(95, 0.04, 'triangle', 0.035); else if ('/R'.includes(t)) tone(220, 0.03, 'square', 0.012); else tone(330 + (P.step ? 30 : 0), 0.018, 'square', 0.01); } }
+  // pasos sin sonido (solo la música)
   trail.unshift([ox, oy]); trail.length = Math.min(trail.length, 4);
   if (false) {
     const g = [['left',-1,0],['right',1,0],['up',0,-1],['down',0,1]].find(([d, gx, gy]) => 'Zd'.includes(at(M.tx + gx, M.ty + gy)) || (at(M.tx + gx, M.ty + gy) === '.' && 'Zd'.includes(at(M.tx + 2*gx, M.ty + 2*gy))));
@@ -1756,7 +1755,7 @@ function stepPlayer(dx, dy, dur){
   const mx0 = M.tx, my0 = M.ty, mWalk = !carry && !M.stuck;
   if (!carry && !M.stuck) { M.dir = ox > M.tx ? 'right' : ox < M.tx ? 'left' : oy > M.ty ? 'down' : 'up'; startMove(M, ox - M.tx, oy - M.ty, dur); }
   moveFK(dur);
-  if (!toyDone && mWalk && floorIdx >= 1 && f - floorStartF > 240 && Math.random() < 0.05) { toyDone = true; toy = {x:mx0, y:my0, steps:0, noticed:false, got:false, floor:floorIdx}; if (!muted) tone(180, 0.05, 'triangle', 0.03); }
+  if (!toyDone && mWalk && floorIdx >= 1 && f - floorStartF > 240 && Math.random() < 0.05) { toyDone = true; toy = {x:mx0, y:my0, steps:0, noticed:false, got:false, floor:floorIdx}; }
   if (toy && !toy.got && toy.floor === floorIdx) {
     if (!toy.noticed && ++toy.steps >= 6) { toy.noticed = true; bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'MI AUTITO! SE ME CAYO!', life:130, delay:0}); guideT = 200; }
     if ((P.tx === toy.x && P.ty === toy.y) || (!carry && M.tx === toy.x && M.ty === toy.y)) { toy.got = true; SFX.star(); bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'MI AUTITO!', life:90, delay:0}); }
@@ -1935,7 +1934,7 @@ function step(){
   upGhosts();
   if (M.stuck && !M.warned && Math.abs(M.tx - P.tx) + Math.abs(M.ty - P.ty) >= 4) { M.warned = true; P.em = 50; P.emk = 'q'; if (!muted) { tone(660, 0.08, 'square', 0.03); tone(440, 0.14, 'square', 0.03, 0.1); } bubbles.push({ent:P, up:0, text: M.why === 'ATRAS' ? 'EH... Y MEIR' : 'MEIR SE QUEDO MIRANDO!', life:130, delay:0}); }
   meirChat();
-  if (rainLater && f >= rainLater && state === 'play') { rainLater = 0; rain = true; if (!muted) tone(70, 0.4, 'triangle', 0.05); bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'EMPEZO A LLOVER!', life:100, delay:0}); }
+  if (rainLater && f >= rainLater && state === 'play') { rainLater = 0; rain = true; bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'EMPEZO A LLOVER!', life:100, delay:0}); }
   upParade();
   tense = false;
   for (const w of watchers) {
@@ -1948,7 +1947,6 @@ function step(){
     if (w.chaseCD > 0) w.chaseCD--;
     if (state === 'play' && !(w.chase > 0) && !(w.chaseCD > 0) && !(w.achis > 0) && Math.abs(w.tx - P.tx) + Math.abs(w.ty - P.ty) <= 6 && los(w.tx, w.ty, P.tx, P.ty) && Math.random() < 0.006) {
       w.chase = 140; w.chaseCD = 1000; w.bang = 45; w.lookQ = []; tense = true;
-      if (!muted) { tone(988, 0.06, 'square', 0.05); tone(1319, 0.12, 'square', 0.05, 0.07); }
       bubbles.push({ent:w, up:10, text: nm('¿MEIR? ¿SOS VOS?'), life:90, delay:20});
     }
     const seen = w.sight.includes(P.tx + ',' + P.ty) || (!carry && w.sight.includes(M.tx + ',' + M.ty)) || (!!FK && FK.mode === 'follow' && (w.sight.includes(FK.tx + ',' + FK.ty) || (!!FK.twin && w.sight.includes(FK.twin.tx + ',' + FK.twin.ty))));
@@ -2092,7 +2090,7 @@ function render(){
     ctx.fillStyle = '#c4e4fb'; ctx.fillRect(X + 3, Y + 6, 10, 5); ctx.fillRect(X + 5, Y + 5, 6, 7);
     ctx.fillStyle = '#ffffff'; ctx.fillRect(X + 5, Y + 7, 3, 1); ctx.fillRect(X + 9, Y + 9, 2, 1); ctx.globalAlpha = 1;
   }
-  if (floorIdx === 0) { if (spotTaken) { drawVehicle({x:16, row:27, len:2, col:'#e5432f', kind:'car'}, cx, cy); if (Math.floor(tick / 18) % 2 === 0) { ctx.fillStyle = '#ffb020'; ctx.fillRect(17 - cx, 27*TS + 3 - cy, 2, 2); ctx.fillRect(17 - cx, 27*TS + 11 - cy, 2, 2); } }
+  if (floorIdx === 0) { if (spotTaken) { drawVehicle({x:12, row:26, len:2, col:'#e5432f', kind:'car'}, cx, cy); if (Math.floor(tick / 18) % 2 === 0) { ctx.fillStyle = '#ffb020'; ctx.fillRect(13 - cx, 26*TS + 3 - cy, 2, 2); ctx.fillRect(13 - cx, 26*TS + 11 - cy, 2, 2); } }
     drawCar(Math.round(car.x - cx), Math.round(car.y - cy)); for (const v of vehicles) drawVehicle(v, cx, cy); }
   for (const it of ITEMS) if (it.floor === Math.min(1, floorIdx) && !got[it.id] && !(facade && facadeA > 0.5 && it.y < facade.rows)) drawItem(it, it.x*TS - cx, it.y*TS - cy);
 
