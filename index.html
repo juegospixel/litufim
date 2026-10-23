@@ -909,7 +909,7 @@ const ROMI_ROUTES = [
 ];
 const QUEUE_T = [[14,18],[14,19],[14,20],[14,21],[14,22],[14,23]];
 const PEOPLE = ['papa2','papa3','papa4','mama1','mama2'];
-let actoDay = false, shakeT = 0, toy = null, toyDone = false, pigeons = [], paseoT = 60, elvioT = 400, hurryT = 300, honkT = 0, honker = null, momDay = false, momT = 0, slowT = 0, shoutCD = 0, spotTaken = false, peakT = 0, ghosts = [], vehicles = [], queue = [], walkT = 200, carT = 120, queueT = 150, queueDay = false, wantAsked = false, meirWants = null, tired = false;
+let rainLater = 0, actoDay = false, shakeT = 0, toy = null, toyDone = false, pigeons = [], paseoT = 60, elvioT = 400, hurryT = 300, honkT = 0, honker = null, momDay = false, momT = 0, slowT = 0, shoutCD = 0, spotTaken = false, peakT = 0, ghosts = [], vehicles = [], queue = [], walkT = 200, carT = 120, queueT = 150, queueDay = false, wantAsked = false, meirWants = null, tired = false;
 function ghost(x, y, route, pal, speed, onEnd, text, solid){
   const g = {e:{...mkEnt(x, y, 'down')}, tiles:expandRoute(route), s:0, pal, speed, onEnd, gone:false, solid:!!solid};
   ghosts.push(g); if (text) bubbles.push({ent:g.e, up:0, text, life:90, delay:0}); return g;
@@ -1428,7 +1428,10 @@ async function showBoard(){
 $('board').addEventListener('pointerdown', e => e.stopPropagation());
 $('namer').addEventListener('pointerdown', e => e.stopPropagation());
 $('menu').addEventListener('pointerdown', e => e.stopPropagation());
-// el título cambia según la hora: mañana, tarde o noche (de noche Meir está en pijama)
+// clima real de Buenos Aires (gratis, sin cuenta): si llueve ahora, en el juego también llueve
+let realWeather = null;
+fetch('https://api.open-meteo.com/v1/forecast?latitude=-34.6&longitude=-58.44&current=weather_code,precipitation')
+  .then(r => r.json()).then(j => { const c = j.current || {}; const w = +c.weather_code; realWeather = {rain: (w >= 51 && w <= 67) || (w >= 80 && w <= 99) || +c.precipitation > 0.1}; }).catch(() => {});
 $('bSave').addEventListener('click', () => {
   if (saved) return;
   const go = async () => {
@@ -1496,7 +1499,7 @@ $('cBack').addEventListener('click', () => { $('cardv').hidden = true; });
 $('cCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(shareText()); $('cardMsg').textContent = 'Texto copiado. Pegalo en WhatsApp.'; } catch(_) { $('cardMsg').textContent = shareText(); } });
 function clockStr(){ return '09:' + String(Math.min(40, 30 + Math.floor(f / FPM))).padStart(2, '0'); }
 function showTitle(kind){
-  const hr = new Date().getHours(); $('title').classList.toggle('night', hr >= 20 || hr < 7); 
+  $('title').classList.remove('night'); // siempre de día: Meir va al jardín a la mañana
   state = kind === 'title' ? 'title' : 'end';
   $('hud').hidden = true; $('dlg').hidden = true; $('title').hidden = false; $('title').classList.remove('story');
   const logo = document.querySelector('.logo'), sub = $('sub');
@@ -1658,7 +1661,7 @@ function newGame(){
   startRun();
 }
 function startRun(){
-  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = Math.random() < 0.3; actoDay = Math.random() < 0.2; momDay = Math.random() < 0.45; spotTaken = Math.random() < 0.3; queueDay = Math.random() < 0.35; tired = false;
+  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = realWeather ? realWeather.rain : Math.random() < 0.25; rainLater = !rain && Math.random() < 0.2 ? FPM*(0.8 + Math.random()*1.5) : 0; actoDay = Math.random() < 0.2; momDay = Math.random() < 0.45; spotTaken = Math.random() < 0.3; queueDay = Math.random() < 0.35; tired = false;
   { const KN = ['ILAN','NOA','BENJA','SHIRA','DAVID','TAMAR','ELI','MAIA','AVI','LEA','YONI','DALIA','TEO','RAFA','JOSI','ARIEL'], prim = Math.random() < 0.3;
     FK = Math.random() < (level >= 2 ? 1 : 0.7) ? {room: KID_ROOMS[Math.floor(Math.random()*KID_ROOMS.length)], pal: prim ? 'primo' : 'kid' + (1 + Math.floor(Math.random()*6)), name: KN[Math.floor(Math.random()*KN.length)], cousin: prim} : null;
     if (FK && level >= 3) { const n2 = KN.filter(n => n !== FK.name); FK.cousin = false; FK.twin = {pal:'kid' + (1 + Math.floor(Math.random()*6)), name:n2[Math.floor(Math.random()*n2.length)]}; } }
@@ -1934,6 +1937,7 @@ function step(){
   upGhosts();
   if (M.stuck && !M.warned && Math.abs(M.tx - P.tx) + Math.abs(M.ty - P.ty) >= 4) { M.warned = true; P.em = 50; P.emk = 'q'; if (!muted) { tone(660, 0.08, 'square', 0.03); tone(440, 0.14, 'square', 0.03, 0.1); } bubbles.push({ent:P, up:0, text: M.why === 'ATRAS' ? 'EH... Y MEIR' : 'MEIR SE QUEDO MIRANDO!', life:130, delay:0}); }
   meirChat();
+  if (rainLater && f >= rainLater && state === 'play') { rainLater = 0; rain = true; if (!muted) tone(70, 0.4, 'triangle', 0.05); bubbles.push({ent:carry ? P : M, up:carry ? 12 : 0, text:'EMPEZO A LLOVER!', life:100, delay:0}); }
   upParade();
   tense = false;
   for (const w of watchers) {
