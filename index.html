@@ -287,7 +287,7 @@ const PB = [
 "ssstsssssssssssstsQsss",
 "bsbsbsbsbsbsbsbsbsbsbs",
 "aaa12avvvvvvvvvvvvvaaa",
-"a34aaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaa",
 "aaaaaaaaaaaaaaaaaaaaaa"];
 // 1er piso: un solo piso, todo pasillo alrededor del vacío del hall; salas del lado de afuera.
 // Llegás por la escalera o el ascensor (al lado) abajo a la izquierda; Litufim está bien al fondo, arriba a la derecha.
@@ -377,7 +377,7 @@ const FLOORS = [
    kidAreas:[[13,5,19,9,'.',4]],
    watchers:[
     {name:'ELVIO', pal:'seg', x:12, y:22, cycle:[['down',200],['right',90]], talk:['ELVIO (seguridad): ¡Avancen, avancen! Acá no se puede estacionar.', 'ELVIO: Buen día, ¿eh? Pero avancen.']},
-    {name:'SEGURIDAD', pal:'seg2', x:13, y:23, cycle:[['down',160],['left',90]], talk:['SEGURIDAD: Buen día. Pasá, pasá.']},
+    {name:'SEGURIDAD', pal:'seg2', x:21, y:22, cycle:[['down',160],['left',90]], talk:['SEGURIDAD: Buen día. Pasá, pasá.']},
     {name:'SEGURIDAD', pal:'seg', x:11, y:18, cycle:[['right',140],['down',90]], talk:['SEGURIDAD (por el vidrio): Buen día.']},
     {name:'RECEPCIÓN', pal:'rubia', x:10, y:17, cycle:[['up',140],['right',90]], talk:['RECEPCIÓN: Buen día. ¿Todo bien?']},
     {name:'RECEPCIÓN', pal:'rubia2', x:11, y:17, cycle:[['up',110],['left',80]], talk:['RECEPCIÓN: Hola, Meir. Buen día.']},
@@ -937,14 +937,14 @@ function upGhosts(){
   if (floorIdx !== 0) return;
   // papás que salen del colegio: unos se van caminando, otros se suben a un auto
   if (--walkT <= 0) {
-    walkT = 1100 + Math.floor(Math.random()*700);
+    walkT = 2000 + Math.floor(Math.random()*1500);
     const pal = PEOPLE[Math.floor(Math.random()*PEOPLE.length)], r = Math.random();
     if (r < 0.35 && !spotTaken) ghost(15, 17, [[15,17],[15,23],[5,23],[5,26]], pal, 13, () => vehicles.push(mkVehicle(4*TS, 27, 'car', 60)));
     else if (r < 0.7) ghost(15, 17, [[15,17],[15,23],[-1,23]], pal, 13);
     else ghost(15, 17, [[15,17],[15,23],[22,23]], pal, 13);
   }
   // mamá apurada que baja de la escalera y corta camino por el pasillito de la izquierda
-  if (--hurryT <= 0) { hurryT = 2400 + Math.floor(Math.random()*1200); const g = ghost(3, 3, [[3,3],[3,12],[15,12],[15,23],[22,23]], ['mama1','mama2','papa4'][Math.floor(Math.random()*3)], 10, null, null, true); g.ask = ['PERMISO, LLEGO TARDE AL TRABAJO!','PERMISITO, PERMISITO!','UY, PERDON!']; g.prop = null; }
+  if (--hurryT <= 0) { hurryT = 4000 + Math.floor(Math.random()*2000); const g = ghost(3, 3, [[3,3],[3,12],[15,12],[15,23],[22,23]], ['mama1','mama2','papa4'][Math.floor(Math.random()*3)], 10, null, null, true); g.ask = ['PERMISO, LLEGO TARDE AL TRABAJO!','PERMISITO, PERMISITO!','UY, PERDON!']; g.prop = null; }
   // mamá con cochecito que sube por la rampa (algunos días)
   if (momT > 0 && --momT === 0) ghost(21, 23, [[21,23],[19,23],[19,22],[18,22],[18,21],[18,18],[16,18],[16,17]], ['mama1','mama2'][Math.floor(Math.random()*2)], 20, null, null, true).prop = 'stroller';
   // el auto de atrás te toca bocina si tardás en salir de al lado del auto
@@ -990,7 +990,7 @@ function upGhosts(){
 const CAR_COLS = ['#e5432f','#2f52c2','#3b3f46','#c0c4c8','#2e9e5b','#f2c12e'];
 const BUS_LIV = [['#efe9da','#c0392b','#1f4fa8'], ['#f2c12e','#2e9e5b','#1b1b1b'], ['#ffffff','#e5432f','#f2c12e'], ['#5bb8e8','#ffffff','#1f4fa8'], ['#e86fa0','#ffffff','#5a2a6a']];
 function mkVehicle(x, row, kind, wait){ const big = kind === 'bus', sch = kind === 'school'; return {x, row, kind, len: big ? 4 : sch ? 3 : 2, v: big ? 1.15 : sch ? 1.3 : kind === 'taxi' ? 1.9 : 1.5 + Math.random()*0.5, col: kind === 'taxi' ? '#1b1b1b' : sch ? '#f28a1e' : CAR_COLS[Math.floor(Math.random()*CAR_COLS.length)], liv: BUS_LIV[Math.floor(Math.random()*BUS_LIV.length)], line: [12,15,19,34,39,60,93,152][Math.floor(Math.random()*8)], wait, honked:false}; }
-const inVehicle = (x, y) => floorIdx === 0 && ((y === 26 && x <= 2) || (spotTaken && y === 26 && (x === 19 || x === 20)) || vehicles.some(v => v.row === y && x >= Math.floor(v.x / TS) && x <= Math.floor((v.x + v.len*TS - 1) / TS)));
+const inVehicle = (x, y) => floorIdx === 0 && ((y === 27 && (x === 3 || x === 4)) || (spotTaken && y === 27 && (x === 19 || x === 20)) || vehicles.some(v => v.row === y && x >= Math.floor(v.x / TS) && x <= Math.floor((v.x + v.len*TS - 1) / TS)));
 function drawVehicle(v, cx, cy){
   const x = Math.round(v.x - cx), y = v.row*TS - cy, L = v.len*TS - 2;
   ctx.fillStyle = 'rgba(20,20,40,.22)'; ctx.fillRect(x+2, y+13, L, 3);
@@ -1074,8 +1074,8 @@ function upPigeons(){
 }
 function spawnBusy(i){
   pigeons = [];
-  if (i === 0) { const groups = 2 + Math.floor(Math.random()*3); // grupitos sueltos, cada una a su altura
-    for (let g = 0; g < groups; g++) { const gx = 12 + Math.random()*(MW*TS - 24), gy = 22*TS + 2 + Math.random()*(3*TS - 6), n = 1 + Math.floor(Math.random()*3);
+  if (i === 0) { const groups = 2; // grupitos sueltos, cada una a su altura
+    for (let g = 0; g < groups; g++) { const gx = 12 + Math.random()*(MW*TS - 24), gy = 22*TS + 2 + Math.random()*(3*TS - 6), n = 1 + (Math.random() < 0.3 ? 1 : 0);
       for (let k = 0; k < n; k++) { const x = gx + (Math.random() - .5)*28, y = gy + (Math.random() - .5)*14, t = at(Math.floor((x + 3)/TS), Math.floor((y + 2)/TS));
         if ('s/^'.includes(t)) pigeons.push({x, y, vx: Math.random() < .5 ? -1 : 1, vy:0, fly:false, peck: Math.floor(Math.random()*40)}); } } }
   const mk = (x, y, route, pal, speed, prop, ask, delay) => { const g = ghost(x, y, route, pal, speed, null, null, true); g.loop = true; g.prop = prop; g.ask = ask; g.delay = delay || 0; return g; };
@@ -1630,7 +1630,7 @@ function drawItem(it, x, y){
 }
 
 /* ================= LLEGADA EN AUTO ================= */
-let car = {x:12, y:26*16, hazard:true, dOpen:false, rOpen:false}, introT = 0, wasInside = false, bumpCD = 0;
+let car = {x:48, y:27*16, hazard:true, dOpen:false, rOpen:false}, introT = 0, wasInside = false, bumpCD = 0;
 let storySeen = false, called = false, bubbles = [], wet = {}, sawCousin = false, wipeT = 0;
 let cState = null;
 function choose(q, opts, cb){
@@ -1662,19 +1662,20 @@ function newGame(){
   startRun();
 }
 function startRun(){
-  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = realWeather ? realWeather.rain : Math.random() < 0.25; rainLater = !rain && Math.random() < 0.2 ? FPM*(0.8 + Math.random()*1.5) : 0; actoDay = Math.random() < 0.2; momDay = Math.random() < 0.25; spotTaken = Math.random() < 0.3; queueDay = Math.random() < 0.1; tired = false;
+  $('board').hidden = true; NAMES.sala = LEVELS[level-1].name; NAMES.papa = hero === 'melu' ? 'Melu' : 'Martín'; receiver = level > 1 ? 'mora' : Math.random() < 0.5 ? 'blair' : 'mica'; rain = realWeather ? realWeather.rain : Math.random() < 0.25; rainLater = !rain && Math.random() < 0.2 ? FPM*(0.8 + Math.random()*1.5) : 0; actoDay = false; momDay = Math.random() < 0.12; spotTaken = Math.random() < 0.3; queueDay = false; tired = false;
   { const KN = ['ILAN','NOA','BENJA','SHIRA','DAVID','TAMAR','ELI','MAIA','AVI','LEA','YONI','DALIA','TEO','RAFA','JOSI','ARIEL'], prim = Math.random() < 0.3;
     FK = false ? {room: KID_ROOMS[Math.floor(Math.random()*KID_ROOMS.length)], pal: prim ? 'primo' : 'kid' + (1 + Math.floor(Math.random()*6)), name: KN[Math.floor(Math.random()*KN.length)], cousin: prim} : null;
     if (FK && level >= 3) { const n2 = KN.filter(n => n !== FK.name); FK.cousin = false; FK.twin = {pal:'kid' + (1 + Math.floor(Math.random()*6)), name:n2[Math.floor(Math.random()*n2.length)]}; } }
   bubbles = []; sawCousin = false; f = 0; carry = false; metGuards = false; called = false; got = {}; surpriseDone = false; toy = null; toyDone = false; elevStuckDone = false; loadFloor(0);
   $('title').hidden = true; $('hud').hidden = false; $('hud').classList.toggle('hard', hard); updStars(); $('floor').classList.remove('up');
-  car = {x:-80, y:26*16, hazard:false, dOpen:false, rOpen:false}; introT = 0; parts = []; pickIntroLines();
+  car = {x:-80, y:27*16, hazard:false, dOpen:false, rOpen:false}; introT = 0; parts = []; pickIntroLines();
   P.hidden = true; M.hidden = true; state = 'intro';
 }
 function endIntro(){
   honkT = 230; honker = null; momT = momDay ? 140 + Math.floor(Math.random()*120) : 0;
-  car.x = spotTaken ? 19*TS : 12; car.hazard = true; car.dOpen = car.rOpen = false;
-  { const cxT = spotTaken ? 19 : 1; Object.assign(P, mkEnt(cxT, 24, 'up'), {hidden:false, viaElev:false}); Object.assign(M, mkEnt(cxT, 25, 'up'), {hidden:false}); }
+  car.x = spotTaken ? 19*TS : 48; car.hazard = true; car.dOpen = car.rOpen = false;
+  if (spotTaken) { Object.assign(P, mkEnt(19, 25, 'up'), {hidden:false, viaElev:false}); Object.assign(M, mkEnt(19, 26, 'up'), {hidden:false}); }
+  else { Object.assign(P, mkEnt(1, 25, 'up'), {hidden:false, viaElev:false}); Object.assign(M, mkEnt(1, 26, 'up'), {hidden:false}); }
   state = 'play';
   if (rain) bubbles.push({ent:M, up:0, text:'LLUEVE, PAPI!', life:100, delay:110});
   const L = [];
@@ -1686,17 +1687,19 @@ function endIntro(){
 const IA = 170, ID = 200; // llegada del auto / se abre la puerta
 function stepIntro(){
   const t = ++introT;
-  const TX = spotTaken ? 19*TS : 12, CT = spotTaken ? 19 : 1;
+  const TX = spotTaken ? 19*TS : 48, SX = spotTaken ? 20 : 2, EX = spotTaken ? 19 : 1;
   if (t <= IA - 10) { const e = 1 - Math.pow(1 - t/(IA - 10), 3); car.x = -80 + (TX + 80)*e; if (t % 20 === 0) SFX.engine(); }
   const at = dx => ({px:car.x + dx, py:car.y - 2});
   if (spotTaken && t === 70) { tone(392, 0.12, 'square', 0.03); tone(330, 0.16, 'square', 0.03, 0.13); bubbles.push({ent:at(20), up:0, text:'UF, OCUPADO!', life:70, delay:0}); }
   if (spotTaken && t === 115) bubbles.push({ent:{px:15*TS, py:car.y - 2}, up:0, text:'VOY BIEN ADELANTE', life:60, delay:0});
   if (t === IA) { SFX.park(); car.hazard = true; }
-  if (t === ID) { car.dOpen = true; SFX.door(); Object.assign(P, mkEnt(CT, 25, 'up')); P.hidden = false; }
-  if (t === ID + 8) { P.dir = 'up'; startMove(P, 0, -1, 7); }
+  if (t === ID) { car.dOpen = true; SFX.door(); Object.assign(P, mkEnt(SX, 26, 'left')); P.hidden = false; }
+  if (t === ID + 8) { P.dir = 'left'; startMove(P, -1, 0, 7); }
   tickMove(P);
   if (t === ID + 18) { P.dir = 'down'; car.rOpen = true; SFX.door(); }
-  if (t === ID + 26) { Object.assign(M, mkEnt(CT, 25, 'up')); M.hidden = false; SFX.hi(); }
+  if (t === ID + 26) { Object.assign(M, mkEnt(SX, 26, 'left')); M.hidden = false; SFX.hi(); }
+  if (t === ID + 34) { P.dir = 'up'; startMove(P, 0, -1, 7); }
+  if (t === ID + 40) { M.dir = 'left'; startMove(M, -1, 0, 7); }
   tickMove(M);
   if (t === ID + 38) { car.dOpen = car.rOpen = false; SFX.door(); P.dir = 'up'; M.dir = 'up'; bubbles.push({ent:P, up:0, text:'RAPIDO, QUE ROMI NO NOS VEA!', life:90, delay:0}); }
   if (t === ID + 48) endIntro();
@@ -2090,7 +2093,7 @@ function render(){
     ctx.fillStyle = '#c4e4fb'; ctx.fillRect(X + 3, Y + 6, 10, 5); ctx.fillRect(X + 5, Y + 5, 6, 7);
     ctx.fillStyle = '#ffffff'; ctx.fillRect(X + 5, Y + 7, 3, 1); ctx.fillRect(X + 9, Y + 9, 2, 1); ctx.globalAlpha = 1;
   }
-  if (floorIdx === 0) { if (spotTaken) { drawVehicle({x:12, row:26, len:2, col:'#e5432f', kind:'car'}, cx, cy); if (Math.floor(tick / 18) % 2 === 0) { ctx.fillStyle = '#ffb020'; ctx.fillRect(13 - cx, 26*TS + 3 - cy, 2, 2); ctx.fillRect(13 - cx, 26*TS + 11 - cy, 2, 2); } }
+  if (floorIdx === 0) { if (spotTaken) { drawVehicle({x:48, row:27, len:2, col:'#e5432f', kind:'car'}, cx, cy); if (Math.floor(tick / 18) % 2 === 0) { ctx.fillStyle = '#ffb020'; ctx.fillRect(49 - cx, 27*TS + 3 - cy, 2, 2); ctx.fillRect(49 - cx, 27*TS + 11 - cy, 2, 2); } }
     drawCar(Math.round(car.x - cx), Math.round(car.y - cy)); for (const v of vehicles) drawVehicle(v, cx, cy); }
   for (const it of ITEMS) if (it.floor === Math.min(1, floorIdx) && !got[it.id] && !(facade && facadeA > 0.5 && it.y < facade.rows)) drawItem(it, it.x*TS - cx, it.y*TS - cy);
 
